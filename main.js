@@ -7,10 +7,6 @@ var MouseX = -1, MouseY = -1;
 
 const DMax = 0.8;
 
-var stats = enableStats();
-var enableStats = function() {
-if (window.Stats === undefined) return null;
-
   var stats = new Stats();
   
   stats.domElement.style.position = 'absolute';
