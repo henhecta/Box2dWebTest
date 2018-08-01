@@ -363,7 +363,7 @@ function init() {
         InputOpe();
         world.Step(1 / 60, 5, 5);
         for (var i = 0; i < BodyNum; i++) {
-            //Bodies[i].grap.setTransformationMatrix(1, 0, 0, 1, 0, 0);
+            Bodies[i].grap.setTransformationMatrix(1, 0, 0, 1, 0, 0);
             Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
             Bodies[i].grap.setRotationByAnchor(Bodies[i].b2body.GetAngle() / Math.PI * 180, "center");
         }
