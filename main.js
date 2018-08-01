@@ -8,12 +8,17 @@ var MouseX = -1, MouseY = -1;
 const DMax = 0.8;
 
 var stats = new Stats();
-
+var stats2 = new Stats();
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
+stats2.showPanel(2);
+stats2.domElement.style.position = 'absolute';
+stats2.domElement.style.left = '80px';
+stats2.domElement.style.top = '0px';
 
 document.body.appendChild(stats.domElement);
+document.body.appendChild(stats2.domElement);
 
 function init() {
     function struct(func) {
@@ -362,7 +367,7 @@ function init() {
     function update() {
         stage.suspend();
         InputOpe();
-        world.Step(1 / 60, 3, 3);
+        world.Step(1 / 60, 4, 2);
         for (var i = 0; i < BodyNum; i++) {
             Bodies[i].grap.setTransformationMatrix(1, 0, 0, 1, 0, 0);
             Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
@@ -382,6 +387,7 @@ function init() {
         stage.resume();
         world.ClearForces();
         stats.update();
+        stats2.update();
     };
 
     //helpers
