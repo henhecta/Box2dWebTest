@@ -10,17 +10,15 @@ const DMax = 0.8;
 var stats = enableStats();
 var enableStats = function() {
 if (window.Stats === undefined) return null;
-var stats = new Stats();
-// 右上に設定
-stats.domElement.style.position = "fixed";
-stats.domElement.style.right    = "5px";
-stats.domElement.style.top      = "5px";
-document.body.appendChild(stats.domElement);
-return stats;
-};
 
-status.showPanel(0);
-document.body.appendChild(status.dom);
+  var stats = new Stats();
+  
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  
+  document.body.appendChild(stats.domElement);
+  
 function init() {
     function struct(func) {
         return function () {
