@@ -7,14 +7,14 @@ var MouseX = -1, MouseY = -1;
 
 const DMax = 0.8;
 
-  var stats = new Stats();
-  
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.left = '0px';
-  stats.domElement.style.top = '0px';
-  
-  document.body.appendChild(stats.domElement);
-  
+var stats = new Stats();
+
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+
+document.body.appendChild(stats.domElement);
+
 function init() {
     function struct(func) {
         return function () {
@@ -128,7 +128,7 @@ function init() {
 
     var Bodies = new Array();
     for (var i = 0; i < BodyNum; i++)
-        Bodies.push(BODY(0, 0, 0, 0, 0,0));
+        Bodies.push(BODY(0, 0, 0, 0, 0, 0));
 
     var Touch = TOUCH([], 0);
 
@@ -357,7 +357,7 @@ function init() {
     }
 
     //update
-    var pathGrap1 = stage.path().stroke({ color: "#FFF" }, 8,"1","round","round").zIndex(10000);
+    var pathGrap1 = stage.path().stroke({ color: "#FFF" }, 8, "1", "round", "round").zIndex(10000);
     var pathGrap2 = stage.path().stroke({ color: "#ff5a78" }, 5, "0 10", "round", "round").zIndex(10000);
     function update() {
         stage.suspend();
@@ -471,6 +471,6 @@ function init() {
 
     ClientSizeX = document.getElementById('container').clientWidth;
     ClientSizeY = document.getElementById('container').clientHeight;
-    
+
     init();
 })();
