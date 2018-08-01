@@ -192,7 +192,7 @@ function init() {
         Bodies[bodyindex].grap.addChild(c);
         Bodies[bodyindex].value = value;
         for (var i = 0; i < String(value).length; i++) {
-            Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", Bodies[bodyindex].height * scale / 2 * i, 0, 0.5 * scale, 1.0 * scale), 0, 0);
+            //Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", Bodies[bodyindex].height * scale / 2 * i, 0, 0.5 * scale, 1.0 * scale), 0, 0);
         }
         Bodies[bodyindex].color = color;
         //Bodies[bodyindex].grap.addChild(stage.text(0, 10, String(value), { fontStyle: "normal", fontSize: ((Bodies[bodyindex].height * scale - 30) + "px"), color: "#000" }));
