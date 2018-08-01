@@ -192,7 +192,7 @@ function init() {
         Bodies[bodyindex].grap.addChild(c);
         Bodies[bodyindex].value = value;
         for (var i = 0; i < String(value).length; i++) {
-            //Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", Bodies[bodyindex].height * scale / 2 * i, 0, 0.5 * scale, 1.0 * scale), 0, 0);
+            Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", Bodies[bodyindex].height * scale / 2 * i, 0, 0.5 * scale, 1.0 * scale), 0, 0);
         }
         Bodies[bodyindex].color = color;
         //Bodies[bodyindex].grap.addChild(stage.text(0, 10, String(value), { fontStyle: "normal", fontSize: ((Bodies[bodyindex].height * scale - 30) + "px"), color: "#000" }));
@@ -361,7 +361,7 @@ function init() {
     function update() {
         stage.suspend();
         InputOpe();
-        world.Step(1 / 60, 1, 1);
+        world.Step(1 / 60, 5, 5);
         for (var i = 0; i < BodyNum; i++) {
             //Bodies[i].grap.setTransformationMatrix(1, 0, 0, 1, 0, 0);
             //Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
