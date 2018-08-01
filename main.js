@@ -415,42 +415,48 @@ function init() {
         };
 
     document.getElementById('container').addEventListener('touchstart', function (e) {
+        e.preventDefault();
         MouseX = e.changedTouches[0].pageX;
         MouseY = e.changedTouches[0].pageY;
         return false;
-    }, false);
+    }, { passive: false });
 
     document.getElementById('container').addEventListener('mousedown', function (e) {
+        e.preventDefault();
         MouseX = e.clientX;
         MouseY = e.clientY;
         return false;
-    }, false);
+    }, { passive: false });
 
     document.getElementById('container').addEventListener('touchmove', function (e) {
+        e.preventDefault();
         if (MouseX != -1) {
             MouseX = e.changedTouches[0].pageX;
             MouseY = e.changedTouches[0].pageY;
         }
         return false;
-    }, false);
+    }, { passive: false });
 
     document.getElementById('container').addEventListener('mousemove', function (e) {
+        e.preventDefault();
         if (MouseX != -1) {
             MouseX = e.clientX;
             MouseY = e.clientY;
         }
         return false;
-    }, false);
+    }, { passive: false });
 
     document.getElementById('container').addEventListener('touchend', function (e) {
+        e.preventDefault();
         MouseX = -1;
         MouseY = -1;
-    }, false);
+    }, { passive: false });
 
     document.getElementById('container').addEventListener('mouseup', function (e) {
+        e.preventDefault();
         MouseX = -1;
         MouseY = -1;
-    }, false);
+    }, { passive: false });
 
     stage = acgraph.create('container');
 
