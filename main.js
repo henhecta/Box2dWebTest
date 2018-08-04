@@ -57,12 +57,14 @@ function init() {
         , b2MouseJointDef = Box2D.Dynamics.Joints.b2MouseJointDef
         ;
 
-
-    WorldSizeX = Math.sqrt(100 * ClientSizeX / ClientSizeY);
-    WorldSizeY = 100 / WorldSizeX;
+    var WorldMul;
+    if (screen.width > 1000) WorldMul = 100;
+    else WorldMul = Math.floor(Math.pow(screen.width, 0.5) * 3);
+    WorldSizeX = Math.sqrt(WorldMul * ClientSizeX / ClientSizeY);
+    WorldSizeY = WorldMul / WorldSizeX;
     scale = ClientSizeX / WorldSizeX;
 
-    const BodyNum = 100;
+    var BodyNum = WorldMul;
 
     var world = new b2World(
         new b2Vec2(0, 10)    //gravity
@@ -150,18 +152,18 @@ function init() {
 
     window.setInterval(update, 1000 / 60);
 
-    var Images = [
-        acgraph.image("images/0.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/1.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/2.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/3.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/4.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/5.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/6.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/7.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/8.png", 0, 0, 0.5 * scale, 1.0 * scale),
-        acgraph.image("images/9.png", 0, 0, 0.5 * scale, 1.0 * scale)
-    ];
+    //var Images = [
+    //    acgraph.image("images/0.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/1.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/2.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/3.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/4.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/5.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/6.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/7.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/8.png", 0, 0, 0.5 * scale, 1.0 * scale),
+    //    acgraph.image("images/9.png", 0, 0, 0.5 * scale, 1.0 * scale)
+    //];
 
     for (var i = 0; i < BodyNum; i++)
         MakeBody(i);
@@ -187,19 +189,20 @@ function init() {
         fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
         Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
         Bodies[bodyindex].grap = stage.layer();
-        var c = stage.rect(0, 0, Bodies[bodyindex].width * scale, Bodies[bodyindex].height * scale);
+        var c = stage.rect(-Bodies[bodyindex].width * scale / 2, -Bodies[bodyindex].height * scale/2, Bodies[bodyindex].width * scale, Bodies[bodyindex].height * scale);
+        c.stroke("none");
         c.fill(color);
         Bodies[bodyindex].grap.addChild(c);
         Bodies[bodyindex].value = value;
         for (var i = 0; i < String(value).length; i++) {
-            Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", Bodies[bodyindex].height * scale / 2 * i, 0, 0.5 * scale, 1.0 * scale), 0, 0);
+            Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", scale / 2 * i - Bodies[bodyindex].width*scale/2, -0.5*scale, 0.5 * scale, 1.0 * scale), 0, 0);
         }
         Bodies[bodyindex].color = color;
         //Bodies[bodyindex].grap.addChild(stage.text(0, 10, String(value), { fontStyle: "normal", fontSize: ((Bodies[bodyindex].height * scale - 30) + "px"), color: "#000" }));
     }
 
     function MakeBody(bodyindex) {
-        bodyDef.position.Set(Math.random() * WorldSizeX, -Math.random() * 10);
+        bodyDef.position.Set(Math.random() * WorldSizeX, -Math.random() * 100);
         bodyDef.angle = Math.random() * Math.PI * 2;
         Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
         SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
@@ -356,16 +359,17 @@ function init() {
     }
 
     //update
-    var pathGrap1 = stage.path().stroke({ color: "#FFF" }, 8, "1", "round", "round").zIndex(10000);
-    var pathGrap2 = stage.path().stroke({ color: "#ff5a78" }, 5, "0 10", "round", "round").zIndex(10000);
+    var pathGrap1 = stage.path().stroke({ color: "#FFF" }, 0.1*scale, "1", "round", "round").zIndex(10000);
+    var pathGrap2 = stage.path().stroke({ color: "#ff5a78" }, 0.1 * scale, "0 " + 0.15 * scale, "round", "round").zIndex(10000);
     function update() {
         stage.suspend();
         InputOpe();
         world.Step(1 / 60, 5, 5);
         for (var i = 0; i < BodyNum; i++) {
-            Bodies[i].grap.setTransformationMatrix(1, 0, 0, 1, 0, 0);
-            Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
-            Bodies[i].grap.setRotationByAnchor(Bodies[i].b2body.GetAngle() / Math.PI * 180, "center");
+            var rot = Bodies[i].b2body.GetAngle();
+            Bodies[i].grap.setTransformationMatrix(Math.cos(rot), Math.sin(rot), -Math.sin(rot), Math.cos(rot), (Bodies[i].b2body.GetPosition().x) * scale, (Bodies[i].b2body.GetPosition().y) * scale);
+            //Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
+            //Bodies[i].grap.setRotationByAnchor(Bodies[i].b2body.GetAngle() / Math.PI * 180, "center");
         }
         pathGrap1.clear();
         pathGrap2.clear();
@@ -379,7 +383,7 @@ function init() {
             }
         }
         stage.resume();
-        world.ClearForces();
+        //world.ClearForces();
         stats.update();
     };
 
