@@ -14,6 +14,9 @@ stats.domElement.style.top = '0px';
 
 document.body.appendChild(stats.domElement);
 
+var svg;
+var ns = 'http://www.w3.org/2000/svg'
+
 function init() {
     function struct(func) {
         return function () {
@@ -28,13 +31,14 @@ function init() {
 
     function gcd(m, n) { return (n == 0) ? Math.abs(m) : gcd(n, m % n); }
 
-    var BODY = struct(function BODY(b2body, grap, width, height, value, color) {
+    var BODY = struct(function BODY(b2body, grap, width, height, value, color, rect) {
         this.b2body = b2body;
         this.grap = grap;
         this.width = width;
         this.height = height;
         this.value = value;
         this.color = color;
+        this.rect = rect;
     });
 
     var TOUCH = struct(function TOUCH(v, gcd) {
@@ -129,7 +133,7 @@ function init() {
 
     var Bodies = new Array();
     for (var i = 0; i < BodyNum; i++)
-        Bodies.push(BODY(0, 0, 0, 0, 0, 0));
+        Bodies.push(BODY(0, 0, 0, 0, 0, 0, 0));
 
     var Touch = TOUCH([], 0);
 
@@ -165,8 +169,9 @@ function init() {
     //    acgraph.image("images/9.png", 0, 0, 0.5 * scale, 1.0 * scale)
     //];
 
-    for (var i = 0; i < BodyNum; i++)
-        MakeBody(i);
+    for (var i = 0; i < BodyNum; i++) {
+        MakeFirstBody(i);
+    }
 
     function GetRandNumber() {
         var sum = 0;
@@ -188,17 +193,43 @@ function init() {
         Bodies[bodyindex].height = 1;
         fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
         Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
-        Bodies[bodyindex].grap = stage.layer();
-        var c = stage.rect(-Bodies[bodyindex].width * scale / 2, -Bodies[bodyindex].height * scale/2, Bodies[bodyindex].width * scale, Bodies[bodyindex].height * scale);
-        c.stroke("none");
-        c.fill(color);
-        Bodies[bodyindex].grap.addChild(c);
+        //Bodies[bodyindex].grap = draw.group();
+        //Bodies[bodyindex].grap.rect(Bodies[bodyindex].width * scale, Bodies[bodyindex].height * scale).fill(color).move(-Bodies[bodyindex].width * scale / 2, -Bodies[bodyindex].height * scale / 2);
+        Bodies[bodyindex].rect = document.createElementNS(ns, 'rect')
+        Bodies[bodyindex].rect.setAttributeNS(null, 'width', Bodies[bodyindex].width * scale)
+        Bodies[bodyindex].rect.setAttributeNS(null, 'height', Bodies[bodyindex].height * scale)
+        Bodies[bodyindex].rect.setAttributeNS(null, 'fill', color)
+        Bodies[bodyindex].rect.setAttributeNS(null, 'x', -Bodies[bodyindex].width * scale / 2)
+        Bodies[bodyindex].rect.setAttributeNS(null, 'y', -Bodies[bodyindex].height * scale / 2)
+        Bodies[bodyindex].grap.appendChild(Bodies[bodyindex].rect)
+
+        //c.stroke("none");
+        //c.fill(color);
+        //Bodies[bodyindex].grap.add(c);
         Bodies[bodyindex].value = value;
+
         for (var i = 0; i < String(value).length; i++) {
-            Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", scale / 2 * i - Bodies[bodyindex].width*scale/2, -0.5*scale, 0.5 * scale, 1.0 * scale), 0, 0);
+            //Bodies[bodyindex].grap.addChild(acgraph.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png", scale / 2 * i - Bodies[bodyindex].width * scale / 2, -0.5 * scale, 0.5 * scale, 1.0 * scale), 0, 0);
+            //Bodies[bodyindex].grap.add(draw.image("images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png").size(0.5 * scale, 1.0 * scale).move(scale / 2 * i - Bodies[bodyindex].width * scale / 2, -0.5 * scale));
+            var img = document.createElementNS(ns, 'image');
+            img.setAttributeNS(null, 'height', 1.0 * scale);
+            img.setAttributeNS(null, 'width', 0.5 * scale);
+            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', "images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png");
+            img.setAttributeNS(null, 'x', scale / 2 * i - Bodies[bodyindex].width * scale / 2);
+            img.setAttributeNS(null, 'y', -0.5 * scale);
+            Bodies[bodyindex].grap.appendChild(img);
         }
         Bodies[bodyindex].color = color;
         //Bodies[bodyindex].grap.addChild(stage.text(0, 10, String(value), { fontStyle: "normal", fontSize: ((Bodies[bodyindex].height * scale - 30) + "px"), color: "#000" }));
+    }
+
+    function MakeFirstBody(bodyindex) {
+        bodyDef.position.Set(Math.random() * WorldSizeX, -Math.random() * 100);
+        bodyDef.angle = Math.random() * Math.PI * 2;
+        Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
+        Bodies[bodyindex].grap = document.createElementNS(ns, 'g');
+        svg.appendChild(Bodies[bodyindex].grap);
+        SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
     }
 
     function MakeBody(bodyindex) {
@@ -286,13 +317,19 @@ function init() {
     function NewBody(b) {
         Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
         world.DestroyBody(Bodies[b].b2body);
-        Bodies[b].grap.remove();
+
+        while (Bodies[b].grap.firstChild) {
+            Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
+        }
         MakeBody(b);
     }
     function UpdateBodyValue(b, v) {
         Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
         //world.DestroyBody(Bodies[b].b2body);
-        Bodies[b].grap.remove();
+
+        while (Bodies[b].grap.firstChild) {
+            Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
+        }
         SetupBody(b, v, Bodies[b].color);
     }
 
@@ -359,30 +396,83 @@ function init() {
     }
 
     //update
-    var pathGrap1 = stage.path().stroke({ color: "#FFF" }, 0.1*scale, "1", "round", "round").zIndex(10000);
-    var pathGrap2 = stage.path().stroke({ color: "#ff5a78" }, 0.1 * scale, "0 " + 0.15 * scale, "round", "round").zIndex(10000);
+    //var pathGrap = draw.nested();
+    var pathGraph1 = document.createElementNS(ns, 'path');
+    var pathGraph2 = document.createElementNS(ns, 'path');
+    svg.appendChild(pathGraph1);
+    svg.appendChild(pathGraph2);
     function update() {
-        stage.suspend();
+        //stage.suspend();
         InputOpe();
         world.Step(1 / 60, 5, 5);
         for (var i = 0; i < BodyNum; i++) {
             var rot = Bodies[i].b2body.GetAngle();
-            Bodies[i].grap.setTransformationMatrix(Math.cos(rot), Math.sin(rot), -Math.sin(rot), Math.cos(rot), (Bodies[i].b2body.GetPosition().x) * scale, (Bodies[i].b2body.GetPosition().y) * scale);
+            //var xp = (Bodies[i].b2body.GetPosition().x) * scale;
+            //var yp = (Bodies[i].b2body.GetPosition().y) * scale;
+            //Bodies[i].grap.move(xp, yp);
+            //Bodies[i].grap.rotate(rot * 180.0 / Math.PI);
+            //Bodies[i].grap.transform({ a: Math.cos(rot), b: Math.sin(rot), c: -Math.sin(rot), d: Math.cos(rot), e: (Bodies[i].b2body.GetPosition().x) * scale, f: (Bodies[i].b2body.GetPosition().y) * scale });
+            Bodies[i].grap.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x) * scale + " " + (Bodies[i].b2body.GetPosition().y) * scale + ")");
+
+            //var r = Bodies[i].grap.transform();
+            //Bodies[i].grap.transform(Math.cos(rot), Math.sin(rot), -Math.sin(rot), Math.cos(rot), (Bodies[i].b2body.GetPosition().x) * scale, (Bodies[i].b2body.GetPosition().y) * scale);
+            //Bodies[i].grap.setTransformationMatrix(Math.cos(rot), Math.sin(rot), -Math.sin(rot), Math.cos(rot), (Bodies[i].b2body.GetPosition().x) * scale, (Bodies[i].b2body.GetPosition().y) * scale);
             //Bodies[i].grap.setPosition((Bodies[i].b2body.GetPosition().x - Bodies[i].width / 2) * scale, (Bodies[i].b2body.GetPosition().y - Bodies[i].height / 2) * scale);
             //Bodies[i].grap.setRotationByAnchor(Bodies[i].b2body.GetAngle() / Math.PI * 180, "center");
         }
-        pathGrap1.clear();
-        pathGrap2.clear();
+
+        //pathGrap.clear();
+        //var path = pathGrap.front().path().attr({
+        //    fill: 'none', stroke: '#fff',
+        //    'stroke-width': 0.1 * scale,
+        //    'stroke-linecap': 'round',
+        //    'stroke-linejoin': 'round'
+        //});
+        //var path2 = pathGrap.front().path().attr({
+        //    fill: 'none', stroke: '#ff5a78',
+        //    'stroke-width': 0.1 * scale,
+        //    'stroke-linecap': 'round',
+        //    'stroke-linejoin': 'round',
+        //    'stroke-dasharray': '0 ' + 0.15 * scale,
+        //    'stroke-dashoffset': 0.05 * scale
+        //});
+        //pathGrap2.clear();
+        var path = '';
         for (var i = 0; i < Touch.v.length; i++) {
             if (i == 0) {
-                pathGrap1.moveTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
-                pathGrap2.moveTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //path.M(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //path2.M(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //pathGrap2.moveTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                path = 'M' + Bodies[Touch.v[i]].b2body.GetPosition().x * scale + ' ' + Bodies[Touch.v[i]].b2body.GetPosition().y * scale;
             } else {
-                pathGrap1.lineTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
-                pathGrap2.lineTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //path.L(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //path2.L(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                //pathGrap2.lineTo(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale);
+                path += 'L' + Bodies[Touch.v[i]].b2body.GetPosition().x * scale + ' ' + Bodies[Touch.v[i]].b2body.GetPosition().y * scale;
             }
         }
-        stage.resume();
+        svg.removeChild(pathGraph1);
+        pathGraph1 = document.createElementNS(ns, 'path');
+        pathGraph1.setAttributeNS(null, 'd', path);
+        pathGraph1.setAttributeNS(null, 'fill', 'none');
+        pathGraph1.setAttributeNS(null, 'stroke', '#fff');
+        pathGraph1.setAttributeNS(null, 'stroke-width', 0.1 * scale);
+        pathGraph1.setAttributeNS(null, 'stroke-linecap', 'round');
+        pathGraph1.setAttributeNS(null, 'stroke-linejoin', 'round');
+        svg.appendChild(pathGraph1);
+
+        svg.removeChild(pathGraph2);
+        pathGraph2 = document.createElementNS(ns, 'path');
+        pathGraph2.setAttributeNS(null, 'd', path);
+        pathGraph2.setAttributeNS(null, 'fill', 'none');
+        pathGraph2.setAttributeNS(null, 'stroke', '#ff5a78');
+        pathGraph2.setAttributeNS(null, 'stroke-width', 0.1 * scale);
+        pathGraph2.setAttributeNS(null, 'stroke-linecap', 'round');
+        pathGraph2.setAttributeNS(null, 'stroke-linejoin', 'round');
+        pathGraph2.setAttributeNS(null, 'stroke-dasharray', '0 ' + 0.15 * scale);
+        pathGraph2.setAttributeNS(null, 'stroke-dashoffset', 0.05 * scale);
+        svg.appendChild(pathGraph2);
+        //stage.resume();
         //world.ClearForces();
         stats.update();
     };
@@ -415,7 +505,7 @@ function init() {
 
 (function () {
     document.getElementById('container').style.background = '#FFF';
-    document.getElementById('container').offsetWidth
+
     window.requestAnimationFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame ||
@@ -470,10 +560,15 @@ function init() {
         MouseY = -1;
     }, { passive: false });
 
-    stage = acgraph.create('container');
-
+    //stage = acgraph.create('container');
     ClientSizeX = document.getElementById('container').clientWidth;
     ClientSizeY = document.getElementById('container').clientHeight;
 
+
+    var div = document.getElementById('container')
+    svg = document.createElementNS(ns, 'svg');
+    svg.setAttributeNS(null, 'width', '100%')
+    svg.setAttributeNS(null, 'height', '100%')
+    div.appendChild(svg)
     init();
 })();
