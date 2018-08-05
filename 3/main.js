@@ -156,19 +156,28 @@ function init() {
     bodyDef.type = b2Body.b2_dynamicBody;
 
     window.setInterval(update, 1000 / 60);
-
-    //var Images = [
-    //    acgraph.image("images/0.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/1.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/2.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/3.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/4.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/5.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/6.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/7.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/8.png", 0, 0, 0.5 * scale, 1.0 * scale),
-    //    acgraph.image("images/9.png", 0, 0, 0.5 * scale, 1.0 * scale)
-    //];
+    
+    var NumberImageD = [
+        ['c',36,0,42,47,41,75,0,28,-5,75,-41,75,'s',-41,-46,-41,-75,'s',5,-75,41,-75,'zm',0,21,'c',-12,0,-17,18,-17,54,0,35,5,53,17,53,'s',18,-17,18,-53,-6,-54,-18,-54,'z'],
+        ['v',150,'h',-24,'v',-127,'h',-13,'l',1,-23,'z'],
+        ['h',55,'v',23,'h',-84,'v',-23,'l',52,-70,'c',13,-17,3,-37,-9,-38,-12,0,-18,8,-25,19,'l',-16,-11,'c',8,-16,23,-27,40,-27,16,0,23,3,31,14,9,12,12,34,1,50,'z'],
+        ['c',18,7,24,19,24,36,-2,29,-17,43,-43,43,-20,0,-29,-8,-40,-25,'l',15,-13,'s',13,18,25,18,'c',14,-1,19,-12,19,-24,-2,-24,-17,-23,-38,-24,'v',-19,'c',21,-1,38,-3,38,-25,0,-10,-8,-19,-17,-19,-14,1,-18,7,-24,17,'l',-16,-12,'c',5,-15,22,-25,38,-25,26,1,39,16,40,39,-1,18,-7,26,-21,33,'z'],
+        ['h',-50,'v',-17,'l',32,-100,19,6,-28,90,'h',27,'v',-58,'h',21,'v',58,'h',21,'v',21,'h',-21,'l',1,30,'h',-22,'z'],
+        ['h',69,'l',-1,22,'h',-46,'v',33,'c',4,-3,12,-5,20,-5,'c',27,0,37,22,37,48,'c',0,25,-15,50,-44,50,'c',-14,0,-31,-11,-37,-17,'l',12,-13,'s',13,10,25,10,'c',13,-1,21,-18,21,-31,'s',-4,-27,-17,-27,'c',-12,-1,-19,3,-25,17,'l',-14,-10,'v',-77,'z'],
+        ['c',28,0,35,24,35,47,0,26,-13,49,-39,49,-34,0,-43,-35,-43,-61,2,-42,24,-82,61,-92,'l',6,17,'c',-38,17,-53,74,-40,105,15,25,33,2,34,-19,0,-26,-20,-33,-31,-11,'l',-12,-13,'c',7,-10,16,-22,29,-22,'z'],
+        ['h',71,'l',11,12,-30,134,'h',-23,'l',29,-124,'h',-37,'v',28,'h',-19,'z'],
+        ['c',-35,-22,-17,-70,17,-71,30,0,37,18,49,37,'l',-13,13,-2,-2,-21,21,'c',20,12,30,27,30,44,-2,27,-18,40,-43,41,-26,-2,-41,-16,-41,-40,0,-15,8,-30,24,-43,'zm',37,-38,'c',-4,-8,-11,-13,-19,-13,-10,0,-17,8,-17,16,0,7,4,14,13,21,8,-8,16,-15,23,-24,'zm',-21,51,'c',-12,10,-18,20,-18,29,0,13,6,20,19,20,14,-1,21,-9,21,-21,-3,-15,-12,-22,-22,-28,'z'],
+        ['c',-4,6,-11,10,-19,10,-25,-4,-32,-26,-32,-46,1,-29,17,-54,45,-55,10,0,17,3,23,10,'l',1,-6,20,5,-28,143,'h',-21,'zm',12,-59,'c',-3,-4,-6,-11,-19,-11,-12,0,-23,13,-23,34,0,10,4,24,14,24,8,0,17,-4,21,-14,'z'],
+    ];
+    var NumberImage = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
+    var NumberImageMX = [50, 62, 37, 67, 54, 12, 56, 9, 32, 58];
+    var NumberImageMY = [25, 25, 152, 96, 145, 27, 79, 27, 94, 114];
+    for (var i = 0; i < 10; i++) {
+        for (var n of NumberImageD[i]) {
+            if ((typeof n) == 'number') NumberImage[i] += ' ' + (n * scale / 200.0);
+            else NumberImage[i] += n;
+        }
+    }
 
     for (var i = 0; i < BodyNum; i++) {
         MakeFirstBody(i);
@@ -218,6 +227,12 @@ function init() {
             //img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', "images/" + Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10 + ".png");
             //img.setAttributeNS(null, 'x', scale / 2 * i - Bodies[bodyindex].width * scale / 2);
             //img.setAttributeNS(null, 'y', -0.5 * scale);
+            //Bodies[bodyindex].grap.appendChild(img);
+            //var num = Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10;
+            //var img = document.createElementNS(ns, 'path');
+            //img.setAttributeNS(null, 'd', 'M' + (NumberImageMX[num] * scale / 200.0 + scale / 2 * i - Bodies[bodyindex].width * scale / 2) + ' ' + (NumberImageMY[num] * scale / 200.0 - 0.5 * scale) + NumberImage[num]);
+            //img.setAttributeNS(null, 'height', 1.0 * scale);
+            //img.setAttributeNS(null, 'width', 0.5 * scale);
             //Bodies[bodyindex].grap.appendChild(img);
         }
         Bodies[bodyindex].color = color;
