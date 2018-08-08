@@ -96,6 +96,8 @@ var Color = [
     "#57aaee",
     "#fa9400",
 ];
+
+var Effect = new Array();
 function init() {
     function struct(func) {
         return function () {
@@ -249,7 +251,7 @@ function init() {
     }
 
     function MakeBody(bodyindex) {
-        bodyDef.position.Set(Math.random() * WorldSizeX, -(Math.random()+1) * WorldSizeY*0.5);
+        bodyDef.position.Set(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5);
         bodyDef.angle = Math.random() * Math.PI * 2;
         Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
         SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
@@ -349,6 +351,46 @@ function init() {
         SetupBody(b, v, Bodies[b].color);
     }
 
+    function SetEffect(x, y, gcd) {
+        var eff = document.createElementNS(ns, 'text');
+        eff.setAttributeNS(null, 'x', x)
+        eff.setAttributeNS(null, 'y', y)
+        eff.setAttributeNS(null, 'font-size', '' + 0.8 * scale)
+        eff.setAttributeNS(null, 'font-family', "Helvetica Neue, Helvetica, ヒラギノ角ゴ Pro W3, Yu Gothic, sans-serif")
+        eff.setAttributeNS(null, 'dominant-baseline', 'middle')
+        eff.setAttributeNS(null, 'opacity', 1)
+        eff.setAttributeNS(null, 'font-weight', 'bold')
+        eff.setAttributeNS(null, 'stroke', '#fff')
+        eff.setAttributeNS(null, 'stroke-width', 0.04 * scale)
+        svg.appendChild(eff);
+
+        var str = '';
+        for (var s = gcd, p = 2; s > 1;) {
+            if (s % p == 0) {
+                s /= p;
+                str += " ÷" + p;
+            }
+            else
+                p++;
+        }
+
+        var txt = document.createTextNode(str);
+        eff.appendChild(txt);
+
+        Effect.push(eff);
+    }
+    function MoveEffect() {
+        for (var eff of Effect) {
+            var opa = Number(eff.getAttribute('opacity')) - 0.02;
+            eff.setAttributeNS(null, 'opacity', opa);
+            eff.setAttributeNS(null, 'y', Number(eff.getAttribute('y')) - 0.02 * scale);
+        }
+        while (Effect.length > 0 && Number(Effect[0].getAttribute('opacity')) < 0) {
+            Effect[0].parentNode.removeChild(Effect[0]);
+            Effect.shift();
+        }
+    }
+
     function EraseTouch() {
         if (Touch.v.length >= 2) {
             for (var i = 0; i < Touch.v.length; i++) {
@@ -357,7 +399,7 @@ function init() {
                 var newVal = Bodies[Touch.v[i]].value / Touch.gcd;
 
                 //SetEffects(ToScreen(Body[n].body -> GetPosition().x), ToScreen(Body[n].body -> GetPosition().y), Touch[i].gcd);
-
+                SetEffect(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale, Touch.gcd);
                 for (var s = Touch.gcd, p = 2; s > 1;) {
                     if (s % p == 0) {
                         s /= p;
@@ -456,7 +498,7 @@ function init() {
         pathGraph2.setAttributeNS(null, 'stroke-dasharray', '0 ' + 0.15 * scale);
         pathGraph2.setAttributeNS(null, 'stroke-dashoffset', 0.05 * scale);
         svg.appendChild(pathGraph2);
-
+        MoveEffect();
         //world.ClearForces();
         stats.update();
     };
@@ -559,16 +601,16 @@ function init() {
             counterg[key] = document.createElementNS(ns, 'g');
             counterg[key].setAttributeNS(null, 'width', '100%');
             counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
-            counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX+',' + posy + ')');
+            counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX + ',' + posy + ')');
             svg.appendChild(counterg[key]);
             posy += countergHeight;
         }
     }
     else {
-        countergHeight = (ClientSizeX * 2.0 / (Object.keys(facts).length+1)) / 2.5;
+        countergHeight = (ClientSizeX * 2.0 / (Object.keys(facts).length + 1)) / 2.5;
         marginX = 0;
         marginY = 0;
-        ClientSizeY -= countergHeight*2.0;
+        ClientSizeY -= countergHeight * 2.0;
 
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
