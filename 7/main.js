@@ -268,7 +268,7 @@ function init() {
             var cookieArray = cookies.split(';');
             for (var i = 0; i < cookieArray.length; i++) {
                 var cookie = cookieArray[i].split('=');
-                result[cookie[0]] = cookie[1];
+                result[Number(cookie[0])] = cookie[1];
             }
         }
 
