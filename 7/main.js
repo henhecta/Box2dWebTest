@@ -275,7 +275,7 @@ function init() {
 
         for (var key in facts) {
             if (result[key])
-                facts[key] = result[key];
+                facts[key] = Number(result[key]);
         }
     }
     function GetRandNumber() {
