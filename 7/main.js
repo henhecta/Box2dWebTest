@@ -247,7 +247,7 @@ function init() {
         MakeFirstBody(i);
     }
 
-
+    LoadCookie();
 
     window.setInterval(update, 1000 / 60);
 
