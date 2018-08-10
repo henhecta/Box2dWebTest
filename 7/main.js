@@ -273,8 +273,10 @@ function init() {
         }
 
         for (var key in facts) {
-            if (result[key])
+            if (result[key]) {
                 facts[key] = Number(result[key]);
+                counterVal[p].nodeValue = '' + zeroPadding(facts[p], 3);
+            }
         }
     }
     function GetRandNumber() {
