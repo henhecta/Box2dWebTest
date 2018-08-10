@@ -211,7 +211,7 @@ function init() {
 
     var world = new b2World(
         new b2Vec2(0, 10)    //gravity
-        , true               //allow sleep
+        , false              //allow sleep
     );
 
     var fixtureDef = new b2FixtureDef;
@@ -293,11 +293,14 @@ function init() {
         return 1;
     }
     function SetupBody(bodyindex, value, color) {
-        var boxShape = new b2PolygonShape;
         Bodies[bodyindex].width = 0.5 * String(value).length;
         Bodies[bodyindex].height = 1;
-        fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
-        Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
+
+        var shape = Bodies[bodyindex].b2body.GetFixtureList().GetShape();
+        shape.m_vertices[0].Set(-Bodies[bodyindex].width / 2, -Bodies[bodyindex].height / 2);
+        shape.m_vertices[1].Set(+Bodies[bodyindex].width / 2, -Bodies[bodyindex].height / 2);
+        shape.m_vertices[2].Set(+Bodies[bodyindex].width / 2, +Bodies[bodyindex].height / 2);
+        shape.m_vertices[3].Set(-Bodies[bodyindex].width / 2, +Bodies[bodyindex].height / 2);
 
         Bodies[bodyindex].rect = document.createElementNS(ns, 'rect')
         Bodies[bodyindex].rect.setAttributeNS(null, 'width', Bodies[bodyindex].width * scale)
@@ -326,13 +329,25 @@ function init() {
         Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
         Bodies[bodyindex].grap = document.createElementNS(ns, 'g');
         svg.appendChild(Bodies[bodyindex].grap);
-        SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
+
+        var value = GetRandNumber();
+
+        var boxShape = new b2PolygonShape;
+        Bodies[bodyindex].width = 0.5 * String(value).length;
+        Bodies[bodyindex].height = 1;
+        fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
+        Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
+        SetupBody(bodyindex, value, Color[Math.floor(Math.random() * Color.length)]);
     }
 
     function MakeBody(bodyindex) {
-        bodyDef.position.Set(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5);
-        bodyDef.angle = Math.random() * Math.PI * 2;
-        Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
+        //bodyDef.position.Set(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5);
+        //bodyDef.angle = Math.random() * Math.PI * 2;
+        Bodies[bodyindex].b2body.SetPosition(new b2Vec2(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5));
+        //Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
+
+        //fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
+        //Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
         SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
     }
 
@@ -413,8 +428,8 @@ function init() {
     }
 
     function NewBody(b) {
-        Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
-        world.DestroyBody(Bodies[b].b2body);
+        //Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
+        //world.DestroyBody(Bodies[b].b2body);
 
         while (Bodies[b].grap.firstChild) {
             Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
@@ -422,8 +437,11 @@ function init() {
         MakeBody(b);
     }
     function UpdateBodyValue(b, v) {
-        Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
+        //Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
         //world.DestroyBody(Bodies[b].b2body);
+
+        var shapes = new Array(BodyNum);
+        for (var i = 0; i < BodyNum; i++)shapes[i] = Bodies[i].b2body.GetFixtureList().GetShape();
 
         while (Bodies[b].grap.firstChild) {
             Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
@@ -731,7 +749,8 @@ function init() {
         CounterPos = 1;
     }
     else {
-        countergHeight = (ClientSizeX / (Object.keys(facts).length / 2)) / 2.5;
+        var Len = Object.keys(facts).length;
+        countergHeight = (ClientSizeX / Math.floor((Len + 1) / 2)) / 2.5;
         marginX = 0;
         marginY = 0;
         ClientSizeY -= countergHeight * 2.0;
@@ -745,7 +764,7 @@ function init() {
     WorldSizeY = WorldMul / WorldSizeX;
     scale = ClientSizeX / WorldSizeX;
 
-    BodyNum = WorldMul;
+    BodyNum = Math.floor(WorldMul * 0.5);
 
     var div = document.getElementById('container');
 
@@ -815,7 +834,7 @@ function init() {
             counterg[key].setAttributeNS(null, 'transform', 'translate(' + posx + ',' + posy + ')');
             svg.appendChild(counterg[key]);
             posx += countergHeight * 2.5;
-            if (posx + countergHeight * 2.5 > ClientSizeX) {
+            if (posx + countergHeight * 2.5 - countergHeight * 2.1 > ClientSizeX) {
                 posx = 0;
                 posy += countergHeight;
             }
