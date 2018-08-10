@@ -121,7 +121,7 @@ var numbers = [
     [707281, 2],
     [282475249, 3],
     [6541380665835015, 3]
-//MX[9007199254740991, 3]
+    //MX[9007199254740991, 3]
 ];
 
 var NumberImageD = [
@@ -243,13 +243,40 @@ function init() {
 
     bodyDef.type = b2Body.b2_dynamicBody;
 
-    window.setInterval(update, 1000 / 60);
-
-
     for (var i = 0; i < BodyNum; i++) {
         MakeFirstBody(i);
     }
 
+
+
+    window.setInterval(update, 1000 / 60);
+
+
+    function SaveCookie() {
+        var co = '';
+        for (var key in facts) {
+            co += key + '=' + facts[key] + '; ';
+        }
+        var expire = new Date();
+        expire.setTime(expire.getTime() + 1000 * 3600 * 24 * 365 * 3);
+        document.cookie = co + 'expires=' + expire.toUTCString();
+    }
+    function LoadCookie() {
+        var result = [];
+        var cookies = document.cookie;
+
+        if (cookies != '') {
+            var cookieArray = cookies.split(';');
+            for (var i = 0; i < cookieArray.length; i++) {
+                var cookie = cookieArray[i].split('=');
+                result[cookie[0]] = cookie[1];
+            }
+        }
+
+        for (var key in facts) {
+            facts[key] = result[key];
+        }
+    }
     function GetRandNumber() {
         var sum = 0;
         for (var i = 0; i < numbers.length; i++) sum += numbers[i][1];
@@ -457,6 +484,7 @@ function init() {
                         s /= p;
                         facts[p]++;
                         counterVal[p].nodeValue = '' + zeroPadding(facts[p], 3);
+                        SaveCookie();
                     }
                     else
                         p++;
@@ -495,7 +523,7 @@ function init() {
                     return;
 
                 Touch.gcd = gcd(Touch.gcd, Bodies[b].value);
-                
+
                 Touch.v.push(b);
             }
         }
@@ -693,18 +721,20 @@ function init() {
     ClientSizeY = document.getElementById('container').clientHeight;
 
     var countergHeight;
-
+    var CounterPos = 0;
     if (ClientSizeX >= ClientSizeY) {
         countergHeight = ClientSizeY * 1.0 / Object.keys(facts).length;
         marginX = 0;
         marginY = 0;
         ClientSizeX -= countergHeight * 2.5;
+        CounterPos = 1;
     }
     else {
         countergHeight = (ClientSizeX / (Object.keys(facts).length / 2)) / 2.5;
         marginX = 0;
         marginY = 0;
         ClientSizeY -= countergHeight * 2.0;
+        CounterPos = 2;
     }
 
     var WorldMul;
@@ -747,7 +777,7 @@ function init() {
     mark.setAttributeNS(null, 'fill', '#b2ff2d');
     marker.appendChild(mark);
 
-    if (ClientSizeX >= ClientSizeY) {
+    if (CounterPos == 1) {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
             for (var n of NumberImageD[i]) {
