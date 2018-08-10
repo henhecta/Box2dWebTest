@@ -253,12 +253,11 @@ function init() {
 
 
     function SaveCookie() {
-        for (var key in facts) {
-            document.cookie = key + '=' + facts[key];
-        }
         var expire = new Date();
         expire.setTime(expire.getTime() + 1000 * 3600 * 24 * 365 * 3);
-        document.cookie = 'expires=' + expire.toUTCString();
+        for (var key in facts) {
+            document.cookie = key + '=' + facts[key] + '; expires=' + expire.toUTCString();
+        }
     }
     function LoadCookie() {
         var result = [];
