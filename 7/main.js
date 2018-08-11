@@ -30,6 +30,7 @@ var marginX, marginY;
 var BodyNum;
 
 var numbers = [
+    [-1, 30],
     [2, 70],
     [3, 70],
     [4, 70],
@@ -163,6 +164,8 @@ var zeroPadding = function (number, digit) {
 };
 var Effect = new Array();
 function init() {
+    var Bomb = new Array();
+
     function struct(func) {
         return function () {
             if (!(this instanceof arguments.callee)) {
@@ -190,7 +193,6 @@ function init() {
         this.v = v;
         this.gcd = gcd;
     });
-
 
     var b2Vec2 = Box2D.Common.Math.b2Vec2
         , b2AABB = Box2D.Collision.b2AABB
@@ -238,11 +240,13 @@ function init() {
     fixtureDef.shape.SetAsBox(WorldSizeX / 2, 0.5);
     bodyDef.position.Set(WorldSizeX / 2, WorldSizeY + 0.5);
     world.CreateBody(bodyDef).CreateFixture(fixtureDef);
-
-    fixtureDef.shape.SetAsBox(0.5, 100 / 2);
-    bodyDef.position.Set(-0.5, -50 + WorldSizeY);
+    bodyDef.position.Set(WorldSizeX / 2, -100.0 - 0.5);
     world.CreateBody(bodyDef).CreateFixture(fixtureDef);
-    bodyDef.position.Set(WorldSizeX + 0.5, -50 + WorldSizeY);
+
+    fixtureDef.shape.SetAsBox(0.5, (100 + WorldSizeY + 10 * 2) / 2);
+    bodyDef.position.Set(-0.5, -100.0 + (WorldSizeY + 100.0) / 2.0);
+    world.CreateBody(bodyDef).CreateFixture(fixtureDef);
+    bodyDef.position.Set(WorldSizeX + 0.5, -100.0 + (WorldSizeY + 100.0) / 2.0);
     world.CreateBody(bodyDef).CreateFixture(fixtureDef);
 
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -300,11 +304,40 @@ function init() {
         Bodies[bodyindex].width = 0.5 * String(value).length;
         Bodies[bodyindex].height = 1;
 
+        if (value == -1) {
+            color = '#000000';
+            Bodies[bodyindex].width = 1;
+            Bodies[bodyindex].height = 1;
+        }
+
+        Bodies[bodyindex].color = color;
+        Bodies[bodyindex].value = value;
+
+
         var shape = Bodies[bodyindex].b2body.GetFixtureList().GetShape();
         shape.m_vertices[0].Set(-Bodies[bodyindex].width / 2, -Bodies[bodyindex].height / 2);
         shape.m_vertices[1].Set(+Bodies[bodyindex].width / 2, -Bodies[bodyindex].height / 2);
         shape.m_vertices[2].Set(+Bodies[bodyindex].width / 2, +Bodies[bodyindex].height / 2);
         shape.m_vertices[3].Set(-Bodies[bodyindex].width / 2, +Bodies[bodyindex].height / 2);
+
+        if (value == -1) {
+            Bodies[bodyindex].rect = document.createElementNS(ns, 'rect')
+            Bodies[bodyindex].rect.setAttributeNS(null, 'width', Bodies[bodyindex].width * scale)
+            Bodies[bodyindex].rect.setAttributeNS(null, 'height', Bodies[bodyindex].height * scale)
+            Bodies[bodyindex].rect.setAttributeNS(null, 'fill', color)
+            Bodies[bodyindex].rect.setAttributeNS(null, 'x', -Bodies[bodyindex].width * scale / 2)
+            Bodies[bodyindex].rect.setAttributeNS(null, 'y', -Bodies[bodyindex].height * scale / 2)
+            Bodies[bodyindex].rect.setAttributeNS(null, 'rx', 0.2 * scale);
+            Bodies[bodyindex].rect.setAttributeNS(null, 'ry', 0.2 * scale);
+
+            Bodies[bodyindex].grap.appendChild(Bodies[bodyindex].rect)
+
+            var gr = document.createElementNS(ns, 'g');
+            gr.setAttributeNS(null, 'transform', 'scale(' + scale + ',' + scale + ')translate(-0.5,-0.5)');
+            gr.innerHTML = '<path d="M 0.45,0.33 C 0.5,0.27 0.56,0.2 0.63,0.17 L 0.66,0.2 C 0.6,0.25 0.55,0.28 0.52,0.33 z" fill="#c3845f"/><circle cx="0.5" cy="0.6" r="0.3" fill="#4b4b4b"/><path d="M0.62,0.27L0.63,0.19L0.55,0.18L0.62,0.14L0.58,0.08L0.65,0.10L0.68,0.03L0.71,0.10L0.78,0.08L0.74,0.14L0.80,0.19L0.73,0.20L0.73,0.27L0.68,0.22Z" fill="#ff0000" />';
+            Bodies[bodyindex].grap.appendChild(gr);
+            return;
+        }
 
         Bodies[bodyindex].rect = document.createElementNS(ns, 'rect')
         Bodies[bodyindex].rect.setAttributeNS(null, 'width', Bodies[bodyindex].width * scale)
@@ -314,7 +347,6 @@ function init() {
         Bodies[bodyindex].rect.setAttributeNS(null, 'y', -Bodies[bodyindex].height * scale / 2)
         Bodies[bodyindex].grap.appendChild(Bodies[bodyindex].rect)
 
-        Bodies[bodyindex].value = value;
 
         for (var i = 0; i < String(value).length; i++) {
             var num = Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10;
@@ -324,11 +356,10 @@ function init() {
             img.setAttributeNS(null, 'width', 0.5 * scale);
             Bodies[bodyindex].grap.appendChild(img);
         }
-        Bodies[bodyindex].color = color;
     }
 
     function MakeFirstBody(bodyindex) {
-        bodyDef.position.Set(Math.random() * WorldSizeX, -Math.random() * 100);
+        bodyDef.position.Set(Math.random() * WorldSizeX, -Math.random() * 50);
         bodyDef.angle = Math.random() * Math.PI * 2;
         Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
         Bodies[bodyindex].grap = document.createElementNS(ns, 'g');
@@ -419,6 +450,9 @@ function init() {
     function distance(a, b, p) {
         return Math.sqrt(min_d2(p[0], p[1], a[0], a[1], b[0], b[1]));
     }
+    function Distance2(x1, y1, x2, y2) {
+        return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+    }
     function CheckNerar(a, b) {
         var ta = [], tb = [];
         GetTopPos(a, ta);
@@ -493,30 +527,79 @@ function init() {
         }
     }
 
+    function SetBomb(bodyindex) {
+        for (var i = 0; i < Bomb.length; i++)
+            if (Bomb[i].bodyIndex == bodyindex)
+                return;
+
+        Bomb.push({ bodyIndex: bodyindex, time: 0 });
+    }
+    function EraseBody(bodyindex, div) {
+        if (Bodies[bodyindex].value == -1) {
+            SetBomb(bodyindex);
+            return;
+        }
+
+        var newVal = Bodies[bodyindex].value / div;
+
+        //SetEffects(ToScreen(Body[n].body -> GetPosition().x), ToScreen(Body[n].body -> GetPosition().y), Touch[i].gcd);
+        SetEffect(Bodies[bodyindex].b2body.GetPosition().x * scale, Bodies[bodyindex].b2body.GetPosition().y * scale, div);
+        for (var s = div, p = 2; s > 1;) {
+            if (s % p == 0) {
+                s /= p;
+                facts[p]++;
+                counterVal[p].nodeValue = '' + zeroPadding(facts[p], 3);
+                SaveCookie();
+            }
+            else
+                p++;
+        }
+
+        if (newVal == 1)
+            NewBody(bodyindex);
+        else
+            UpdateBodyValue(bodyindex, newVal);
+    }
+    function BombProg() {
+        for (var i = 0; i < Bomb.length; i++) {
+            Bomb[i].time++;
+            var mag = Math.pow(1.005, Bomb[i].time);
+            Bodies[Bomb[i].bodyIndex].rect.setAttributeNS(null, 'width', Bodies[Bomb[i].bodyIndex].width * scale * mag)
+            Bodies[Bomb[i].bodyIndex].rect.setAttributeNS(null, 'height', Bodies[Bomb[i].bodyIndex].height * scale * mag)
+            Bodies[Bomb[i].bodyIndex].rect.setAttributeNS(null, 'x', -Bodies[Bomb[i].bodyIndex].width * scale / 2 * mag)
+            Bodies[Bomb[i].bodyIndex].rect.setAttributeNS(null, 'y', -Bodies[Bomb[i].bodyIndex].height * scale / 2 * mag)
+            Bodies[Bomb[i].bodyIndex].rect.setAttributeNS(null, 'fill', Math.floor(Bomb[i].time / 25) % 2 == 0 ? '#ddd' : '#000');
+            Bodies[Bomb[i].bodyIndex].grap.getElementsByTagName("g")[0].setAttributeNS(null, 'transform', 'scale(' + scale * mag + ',' + scale * mag + ')translate(-0.5,-0.5)');
+            if (Bomb[i].time == 80) {
+                var Bpos = Bodies[Bomb[i].bodyIndex].b2body.GetPosition();
+                for (var j = 0; j < BodyNum; j++) {
+                    if (j == Bomb[i].bodyIndex) continue;
+                    var pos = Bodies[j].b2body.GetPosition();
+                    var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
+                    if (dis < 4.2) {
+                        EraseBody(j, Bodies[j].value);
+                        continue;
+                    }
+                    if (dis < 10.0 && Bodies[j].value == -1) {
+                        SetBomb(j, false);
+                    }
+                    var impulse = new b2Vec2;
+                    impulse.x = pos.x - Bpos.x;
+                    impulse.y = pos.y - Bpos.y;
+                    impulse.x = impulse.x / Math.pow(dis, 3) * 300.0;
+                    impulse.y = impulse.y / Math.pow(dis, 3) * 300.0;
+                    Bodies[j].b2body.ApplyImpulse(impulse, pos);
+                }
+                NewBody(Bomb[i].bodyIndex);
+            }
+        }
+        while (Bomb.length > 0 && Bomb[0].time >= 80) Bomb.shift();
+    }
     function EraseTouch() {
         if (Touch.v.length >= 2) {
             for (var i = 0; i < Touch.v.length; i++) {
-                // 一つのブロックを２人が同時に指定したときとか。
-                //if (Bodies[Touch.v[i]].value % Touch.gcd != 0) continue;
-                var newVal = Bodies[Touch.v[i]].value / Touch.gcd;
 
-                //SetEffects(ToScreen(Body[n].body -> GetPosition().x), ToScreen(Body[n].body -> GetPosition().y), Touch[i].gcd);
-                SetEffect(Bodies[Touch.v[i]].b2body.GetPosition().x * scale, Bodies[Touch.v[i]].b2body.GetPosition().y * scale, Touch.gcd);
-                for (var s = Touch.gcd, p = 2; s > 1;) {
-                    if (s % p == 0) {
-                        s /= p;
-                        facts[p]++;
-                        counterVal[p].nodeValue = '' + zeroPadding(facts[p], 3);
-                        SaveCookie();
-                    }
-                    else
-                        p++;
-                }
-
-                if (newVal == 1)
-                    NewBody(Touch.v[i]);
-                else
-                    UpdateBodyValue(Touch.v[i], newVal);
+                EraseBody(Touch.v[i], Touch.gcd);
             }
         }
         Touch.v = [];
@@ -536,13 +619,18 @@ function init() {
                 Touch.gcd = Bodies[b].value;
             }
             else if (Touch.v[Touch.v.length - 1] != b) {
-                if (gcd(Touch.gcd, Bodies[b].value) == 1)
-                    return;
-
                 if (!CheckNerar(Touch.v[Touch.v.length - 1], b))
                     return;
 
                 if (Touch.v.indexOf(b) >= 0)
+                    return;
+
+                if (Touch.v.length >= 2 && Bodies[b].value == -1) {
+                    Touch.v.push(b);
+                    return;
+                }
+
+                if (gcd(Touch.gcd, Bodies[b].value) == 1)
                     return;
 
                 Touch.gcd = gcd(Touch.gcd, Bodies[b].value);
@@ -661,8 +749,13 @@ function init() {
     function update() {
         //stage.suspend();
         InputOpe();
+        BombProg();
         world.Step(1 / 60, 5, 5);
+        //world.ClearForces();
         for (var i = 0; i < BodyNum; i++) {
+            if (Bodies[i].b2body.GetPosition().y > WorldSizeY * 2)
+                NewBody(i);
+
             var rot = Bodies[i].b2body.GetAngle();
             Bodies[i].grap.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
         }
@@ -824,7 +917,7 @@ function init() {
     WorldSizeY = WorldMul / WorldSizeX;
     scale = ClientSizeX / WorldSizeX;
 
-    BodyNum = Math.floor(WorldMul * 1);
+    BodyNum = Math.floor(WorldMul * 0.85);
 
     var div = document.getElementById('container');
 
