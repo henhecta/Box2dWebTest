@@ -17,8 +17,12 @@ document.body.appendChild(stats.domElement);
 var svg;
 var ns = 'http://www.w3.org/2000/svg'
 
+var mainCont;
 var counter;
+var counterHint;
+var counterPos;
 var counterg = new Object();
+var countergPos = new Object();
 var countergColor = new Object();
 var counterVal = new Object();
 var facts = new Object();
@@ -328,7 +332,7 @@ function init() {
         bodyDef.angle = Math.random() * Math.PI * 2;
         Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
         Bodies[bodyindex].grap = document.createElementNS(ns, 'g');
-        svg.appendChild(Bodies[bodyindex].grap);
+        mainCont.appendChild(Bodies[bodyindex].grap);
 
         var value = GetRandNumber();
 
@@ -601,6 +605,59 @@ function init() {
         }
         return a.join('');
     }
+    var HintSetSec = 0;
+    var HintSetKey = -1;
+    function SetHint() {
+        HintSetKey = -1;
+        if (MouseX != -1 &&
+            counterPos.x <= MouseX && MouseX <= counterPos.x + counterPos.width &&
+            counterPos.y <= MouseY && MouseY <= counterPos.y + counterPos.height) {
+            HintSetSec++;
+        } else {
+            HintSetSec = 0;
+        }
+        if (HintSetSec < 20) {
+            while (counterHint.firstChild) {
+                counterHint.removeChild(counterHint.firstChild);
+            }
+            return;
+        }
+
+        for (var key in facts) {
+            if (MouseX <= countergPos[key].x || countergPos[key].x + countergPos[key].width <= MouseX ||
+                MouseY <= countergPos[key].y || countergPos[key].y + countergPos[key].height <= MouseY)
+                continue;
+
+            HintSetKey = key;
+            for (var i = 0; i < BodyNum; i++) {
+                if (Bodies[i].value % key != 0) {
+                    var hintBox = document.getElementById('hint' + i);
+                    if (hintBox != null) {
+                        hintBox.parentElement.removeChild(hintBox);
+                    }
+                    continue;
+                }
+
+                var rot = Bodies[i].b2body.GetAngle();
+                var hintBox = document.getElementById('hint' + i)
+                if (hintBox == null) {
+                    hintBox = document.createElementNS(ns, 'rect');
+                    hintBox.setAttributeNS(null, 'id', 'hint' + i);
+                    hintBox.setAttributeNS(null, 'width', Bodies[i].width * scale);
+                    hintBox.setAttributeNS(null, 'height', Bodies[i].height * scale);
+                    hintBox.setAttributeNS(null, 'x', -Bodies[i].width * scale / 2);
+                    hintBox.setAttributeNS(null, 'y', -Bodies[i].height * scale / 2);
+                    hintBox.setAttributeNS(null, 'fill', '#fff');
+                    hintBox.setAttributeNS(null, 'stroke', '#000');
+                    hintBox.setAttributeNS(null, 'stroke-width', 0.1 * scale);
+                    counterHint.appendChild(hintBox);
+                }
+                hintBox.setAttributeNS(null, 'fill-opacity', Math.min((HintSetSec - 20) * 0.05 * 0.4, 0.4));
+                hintBox.setAttributeNS(null, 'stroke-opacity', Math.min((HintSetSec - 20) * 0.05, 1.0));
+                hintBox.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
+            }
+        }
+    }
     function update() {
         //stage.suspend();
         InputOpe();
@@ -609,12 +666,13 @@ function init() {
             var rot = Bodies[i].b2body.GetAngle();
             Bodies[i].grap.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
         }
+        SetHint();
 
         if (MouseX != -1) TouchLe++; else TouchLe = 0;
 
         if (TouchLe > 20) {
             for (var key in facts) {
-                if (Touch.gcd % key == 0) {
+                if ((Touch.gcd != 0 && Touch.gcd % key == 0) || HintSetKey == key) {
                     counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
                     counterVal[key].parentNode.setAttributeNS(null, 'fill', '#' + darken(countergColor[key].slice(1), (TouchLe - 20) * 0.1));
                 }
@@ -740,13 +798,14 @@ function init() {
     ClientSizeY = document.getElementById('container').clientHeight;
 
     var countergHeight;
-    var CounterPos = 0;
+    var CounterType = 0;
     if (ClientSizeX >= ClientSizeY) {
         countergHeight = ClientSizeY * 1.0 / Object.keys(facts).length;
         marginX = 0;
         marginY = 0;
         ClientSizeX -= countergHeight * 2.5;
-        CounterPos = 1;
+        CounterType = 1;
+        counterPos = { x: ClientSizeX, y: 0, width: countergHeight * 2.5, height: ClientSizeY };
     }
     else {
         var Len = Object.keys(facts).length;
@@ -754,7 +813,8 @@ function init() {
         marginX = 0;
         marginY = 0;
         ClientSizeY -= countergHeight * 2.0;
-        CounterPos = 2;
+        CounterType = 2;
+        counterPos = { x: 0, y: ClientSizeY, width: ClientSizeX, height: countergHeight * 2 };
     }
 
     var WorldMul;
@@ -772,6 +832,9 @@ function init() {
     svg.setAttributeNS(null, 'width', '100%');
     svg.setAttributeNS(null, 'height', '100%');
     div.appendChild(svg)
+
+    mainCont = document.createElementNS(ns, 'g')
+    svg.appendChild(mainCont);
 
     var defs = document.createElementNS(ns, 'defs');
     svg.appendChild(defs);
@@ -797,7 +860,7 @@ function init() {
     mark.setAttributeNS(null, 'fill', '#b2ff2d');
     marker.appendChild(mark);
 
-    if (CounterPos == 1) {
+    if (CounterType == 1) {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
             for (var n of NumberImageD[i]) {
@@ -813,6 +876,7 @@ function init() {
             counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
             counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX + ',' + posy + ')');
             svg.appendChild(counterg[key]);
+            countergPos[key] = { x: ClientSizeX, y: posy, width: countergHeight * 2.5, height: countergHeight };
             posy += countergHeight;
         }
     }
@@ -833,6 +897,7 @@ function init() {
             counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
             counterg[key].setAttributeNS(null, 'transform', 'translate(' + posx + ',' + posy + ')');
             svg.appendChild(counterg[key]);
+            countergPos[key] = { x: posx, y: posy, width: countergHeight * 2.5, height: countergHeight };
             posx += countergHeight * 2.5;
             if (posx + countergHeight * 2.5 - countergHeight * 2.1 > ClientSizeX) {
                 posx = 0;
@@ -843,15 +908,15 @@ function init() {
 
     for (var key in facts) {
         if (!facts.hasOwnProperty(key)) continue;
-        var imgbox = document.createElementNS(ns, 'rect')
         //imgbox.setAttributeNS(null, 'width', countergHeight * 0.5 * String(key).length * 0.8)
         //imgbox.setAttributeNS(null, 'height', countergHeight * 0.8)
         //imgbox.setAttributeNS(null, 'x', countergHeight * 0.1)
         //imgbox.setAttributeNS(null, 'y', countergHeight * 0.1)
 
-        countergColor[key] = Color[Math.floor(Math.random() * Color.length)];
-
+        countergColor[key] = Color[Math.floor(Math.random() * Color.length)]
         counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
+
+        var imgbox = document.createElementNS(ns, 'rect')
         imgbox.setAttributeNS(null, 'width', countergHeight * 2.5 * 0.9)
         imgbox.setAttributeNS(null, 'height', countergHeight * 0.1)
         imgbox.setAttributeNS(null, 'x', countergHeight * 2.5 * 0.05)
@@ -879,5 +944,8 @@ function init() {
         counterVal[key] = document.createTextNode('' + zeroPadding(0, 3));
         text.appendChild(counterVal[key]);
     }
+
+    counterHint = document.createElementNS(ns, 'g')
+    svg.appendChild(counterHint);
     init();
 })();
