@@ -824,7 +824,7 @@ function init() {
     WorldSizeY = WorldMul / WorldSizeX;
     scale = ClientSizeX / WorldSizeX;
 
-    BodyNum = Math.floor(WorldMul * 0.5);
+    BodyNum = Math.floor(WorldMul * 1);
 
     var div = document.getElementById('container');
 
