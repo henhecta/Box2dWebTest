@@ -156,44 +156,165 @@ var Color = [
 
 var zeroPadding = function (number, digit) {
     var numberLength = String(number).length;
-    if (digit > numberLength) {
+    if (digit > numberLength)
         return (new Array((digit - numberLength) + 1).join(0)) + number;
-    } else {
+    else
         return number;
-    }
 };
-var Effect = new Array();
-function init() {
-    var Bomb = new Array();
 
-    function struct(func) {
-        return function () {
-            if (!(this instanceof arguments.callee)) {
-                var f = new arguments.callee();
-                func.apply(f, arguments);
-                return f;
+var Effect = new Array();
+
+function init() {
+    var div = document.getElementById('container');
+
+    for (var n of numbers) {
+        for (var s = n[0], p = 2; s > 1;) {
+            if (s % p == 0) {
+                s /= p;
+                facts[p] = 0;
             }
-            return func.apply(this, arguments);
-        };
+            else p++;
+        }
     }
 
+    var countergHeight;
+    var CounterType = 0;
+    if (ClientSizeX >= ClientSizeY) {
+        countergHeight = ClientSizeY * 1.0 / Object.keys(facts).length;
+        marginX = 0;
+        marginY = 0;
+        ClientSizeX -= countergHeight * 2.5;
+        CounterType = 1;
+        counterPos = { x: ClientSizeX, y: 0, width: countergHeight * 2.5, height: ClientSizeY };
+    }
+    else {
+        var Len = Object.keys(facts).length;
+        countergHeight = (ClientSizeX / Math.floor((Len + 1) / 2)) / 2.5;
+        marginX = 0;
+        marginY = 0;
+        ClientSizeY -= countergHeight * 2.0;
+        CounterType = 2;
+        counterPos = { x: 0, y: ClientSizeY, width: ClientSizeX, height: countergHeight * 2 };
+    }
+
+    var WorldMul;
+    if (screen.width > 1000 || screen.height > 1000) WorldMul = 100;
+    else WorldMul = Math.floor(Math.pow(screen.width, 0.5) * 2);
+    WorldSizeX = Math.sqrt(WorldMul * ClientSizeX / ClientSizeY);
+    WorldSizeY = WorldMul / WorldSizeX;
+    scale = ClientSizeX / WorldSizeX;
+
+    BodyNum = Math.floor(WorldMul * 0.85);
+
+    mainCont = document.createElementNS(ns, 'g')
+    svg.appendChild(mainCont);
+
+    var defs = document.createElementNS(ns, 'defs');
+    svg.appendChild(defs);
+    var marker = document.createElementNS(ns, 'marker');
+    marker.setAttributeNS(null, 'id', 'Marke');
+    marker.setAttributeNS(null, 'refX', '1');
+    marker.setAttributeNS(null, 'refY', '1');
+    marker.setAttributeNS(null, 'markerWidth', '2');
+    marker.setAttributeNS(null, 'markerHeight', '2');
+    defs.appendChild(marker);
+
+    var mark = document.createElementNS(ns, 'circle');
+    mark.setAttributeNS(null, 'cx', '1');
+    mark.setAttributeNS(null, 'cy', '1');
+    mark.setAttributeNS(null, 'r', '1');
+    mark.setAttributeNS(null, 'fill', '#b2ff2d');
+    marker.appendChild(mark);
+
+    if (CounterType == 1) {
+        var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
+        for (var i = 0; i < 10; i++) {
+            for (var n of NumberImageD[i]) {
+                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
+                else NumberImage2[i] += n;
+            }
+        }
+        var posy = 0;
+        for (var key in facts) {
+            if (!facts.hasOwnProperty(key)) continue;
+            counterg[key] = document.createElementNS(ns, 'g');
+            counterg[key].setAttributeNS(null, 'width', '100%');
+            counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
+            counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX + ',' + posy + ')');
+            svg.appendChild(counterg[key]);
+            countergPos[key] = { x: ClientSizeX, y: posy, width: countergHeight * 2.5, height: countergHeight };
+            posy += countergHeight;
+        }
+    }
+    else {
+        var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
+        for (var i = 0; i < 10; i++) {
+            for (var n of NumberImageD[i]) {
+                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
+                else NumberImage2[i] += n;
+            }
+        }
+        var posx = 0;
+        var posy = ClientSizeY;
+        for (var key in facts) {
+            if (!facts.hasOwnProperty(key)) continue;
+            counterg[key] = document.createElementNS(ns, 'g');
+            counterg[key].setAttributeNS(null, 'width', '' + countergHeight * 2.5);
+            counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
+            counterg[key].setAttributeNS(null, 'transform', 'translate(' + posx + ',' + posy + ')');
+            svg.appendChild(counterg[key]);
+            countergPos[key] = { x: posx, y: posy, width: countergHeight * 2.5, height: countergHeight };
+            posx += countergHeight * 2.5;
+            if (posx + countergHeight * 2.5 - countergHeight * 2.1 > ClientSizeX) {
+                posx = 0;
+                posy += countergHeight;
+            }
+        }
+    }
+
+    for (var key in facts) {
+        if (!facts.hasOwnProperty(key)) continue;
+
+        countergColor[key] = Color[Math.floor(Math.random() * Color.length)]
+        counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
+
+        var imgbox = document.createElementNS(ns, 'rect')
+        imgbox.setAttributeNS(null, 'width', countergHeight * 2.5 * 0.9)
+        imgbox.setAttributeNS(null, 'height', countergHeight * 0.1)
+        imgbox.setAttributeNS(null, 'x', countergHeight * 2.5 * 0.05)
+        imgbox.setAttributeNS(null, 'y', countergHeight * 0.8)
+        counterg[key].appendChild(imgbox)
+
+        for (var i = 0; i < String(key).length; i++) {
+            var num = Math.floor(key / Math.pow(10, String(key).length - i - 1)) % 10;
+            var img = document.createElementNS(ns, 'path');
+            img.setAttributeNS(null, 'd', 'M' + (NumberImageMX[num] * countergHeight * 0.8 / 200.0 + countergHeight * 0.8 / 2 * i + countergHeight * 0.1) + ' ' + (NumberImageMY[num] * countergHeight * 0.8 / 200.0 + countergHeight * 0.1) + NumberImage2[num]);
+            counterg[key].appendChild(img);
+        }
+
+        var text = document.createElementNS(ns, 'text')
+        text.setAttributeNS(null, 'height', countergHeight)
+        text.setAttributeNS(null, 'x', countergHeight)
+        text.setAttributeNS(null, 'y', countergHeight * 0.63)
+        text.setAttributeNS(null, 'font-size', '' + countergHeight * 0.7)
+        text.setAttributeNS(null, 'font-family', "'Concert One',Helvetica Neue, Helvetica, ヒラギノ角ゴ Pro W3, Yu Gothic, sans-serif")
+        text.setAttributeNS(null, 'dominant-baseline', 'middle')
+        text.setAttributeNS(null, 'font-weight', '400')
+        text.setAttributeNS(null, 'fill', '#000')
+        counterg[key].appendChild(text);
+
+        counterVal[key] = document.createTextNode('' + zeroPadding(0, 3));
+        text.appendChild(counterVal[key]);
+    }
+
+    counterHint = document.createElementNS(ns, 'g')
+    svg.appendChild(counterHint);
+}
+function main() {
+    var Bomb = new Array();
+    
     function gcd(m, n) { return (n == 0) ? Math.abs(m) : gcd(n, m % n); }
-
-    var BODY = struct(function BODY(b2body, grap, width, height, value, color, rect) {
-        this.b2body = b2body;
-        this.grap = grap;
-        this.width = width;
-        this.height = height;
-        this.value = value;
-        this.color = color;
-        this.rect = rect;
-    });
-
-    var TOUCH = struct(function TOUCH(v, gcd) {
-        this.v = v;
-        this.gcd = gcd;
-    });
-
+    
     var b2Vec2 = Box2D.Common.Math.b2Vec2
         , b2AABB = Box2D.Collision.b2AABB
         , b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -215,24 +336,19 @@ function init() {
         }
     }
 
-    var world = new b2World(
-        new b2Vec2(0, 10)    //gravity
-        , false              //allow sleep
-    );
+    var world = new b2World(new b2Vec2(0, 10), false);
 
     var fixtureDef = new b2FixtureDef;
     fixtureDef.density = 1.0;
     fixtureDef.friction = 0.3;
     fixtureDef.restitution = 0.4;
-
-
     var bodyDef = new b2BodyDef;
-
     var Bodies = new Array();
-    for (var i = 0; i < BodyNum; i++)
-        Bodies.push(BODY(0, 0, 0, 0, 0, 0, 0));
 
-    var Touch = TOUCH([], 0);
+    for (var i = 0; i < BodyNum; i++)
+        Bodies.push({ b2body: 0, grap: 0, width: 0, height: 0, value: 0, color: 0, rect: 0 });
+
+    var Touch = { v: [], gcd: 0 };
 
     bodyDef.type = b2Body.b2_staticBody;
     fixtureDef.shape = new b2PolygonShape;
@@ -251,22 +367,20 @@ function init() {
 
     bodyDef.type = b2Body.b2_dynamicBody;
 
-    for (var i = 0; i < BodyNum; i++) {
+    for (var i = 0; i < BodyNum; i++)
         MakeFirstBody(i);
-    }
 
     LoadCookie();
 
     window.setInterval(update, 1000 / 60);
 
-
     function SaveCookie() {
         var expire = new Date();
         expire.setTime(expire.getTime() + 1000 * 3600 * 24 * 365 * 3);
-        for (var key in facts) {
+        for (var key in facts)
             document.cookie = key + '=' + facts[key] + '; expires=' + expire.toUTCString();
-        }
     }
+
     function LoadCookie() {
         var result = [];
         var cookies = document.cookie;
@@ -286,9 +400,11 @@ function init() {
             }
         }
     }
+
     function GetRandNumber() {
         var sum = 0;
-        for (var i = 0; i < numbers.length; i++) sum += numbers[i][1];
+        for (var i = 0; i < numbers.length; i++)
+            sum += numbers[i][1];
 
         var r = Math.floor(Math.random() * sum);
 
@@ -300,6 +416,7 @@ function init() {
         }
         return 1;
     }
+
     function SetupBody(bodyindex, value, color) {
         Bodies[bodyindex].width = 0.5 * String(value).length;
         Bodies[bodyindex].height = 1;
@@ -347,7 +464,6 @@ function init() {
         Bodies[bodyindex].rect.setAttributeNS(null, 'y', -Bodies[bodyindex].height * scale / 2)
         Bodies[bodyindex].grap.appendChild(Bodies[bodyindex].rect)
 
-
         for (var i = 0; i < String(value).length; i++) {
             var num = Math.floor(value / Math.pow(10, String(value).length - i - 1)) % 10;
             var img = document.createElementNS(ns, 'path');
@@ -376,13 +492,7 @@ function init() {
     }
 
     function MakeBody(bodyindex) {
-        //bodyDef.position.Set(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5);
-        //bodyDef.angle = Math.random() * Math.PI * 2;
         Bodies[bodyindex].b2body.SetPosition(new b2Vec2(Math.random() * WorldSizeX, -(Math.random() + 1) * WorldSizeY * 0.5));
-        //Bodies[bodyindex].b2body = world.CreateBody(bodyDef);
-
-        //fixtureDef.shape.SetAsBox(Bodies[bodyindex].width / 2, Bodies[bodyindex].height / 2);
-        //Bodies[bodyindex].b2body.CreateFixture(fixtureDef);
         SetupBody(bodyindex, GetRandNumber(), Color[Math.floor(Math.random() * Color.length)]);
     }
 
@@ -410,6 +520,7 @@ function init() {
     function TriangleAndPoint_(a, b, P) {
         return (a[1] - b[1]) * P[0] - (a[0] - b[0]) * P[1] + a[0] * b[1] - b[0] * a[1];
     }
+
     function TriangleAndPoint(a, b, c, p) {
         var k1, k2, k3;
         k1 = TriangleAndPoint_(a, b, p);
@@ -418,9 +529,11 @@ function init() {
 
         return (k1 == 0 && k2 == 0 && k3 == 0) || (k1 > 0 && k2 > 0 && k3 > 0) || (k1 < 0 && k2 < 0 && k3 < 0);
     }
+
     function BoxAndPoint(a, b, c, d, p) {
         return TriangleAndPoint(a, b, c, p) || TriangleAndPoint(a, c, d, p);
     }
+
     function GetBodyNum(TouchPos) {
         for (var i = 0; i < Bodies.length; i++) {
             var topS = [];
@@ -431,6 +544,7 @@ function init() {
         }
         return -1;
     }
+
     function min_d2(x0, y0, x1, y1, x2, y2) {
         var a = x2 - x1;
         var b = y2 - y1;
@@ -438,21 +552,24 @@ function init() {
         var b2 = b * b;
         var r2 = a2 + b2;
         var tt = -(a * (x1 - x0) + b * (y1 - y0));
-        if (tt < 0) {
+        if (tt < 0)
             return (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
-        }
-        if (tt > r2) {
+
+        if (tt > r2)
             return (x2 - x0) * (x2 - x0) + (y2 - y0) * (y2 - y0);
-        }
+
         var f1 = a * (y1 - y0) - b * (x1 - x0);
         return (f1 * f1) / r2;
     }
+
     function distance(a, b, p) {
         return Math.sqrt(min_d2(p[0], p[1], a[0], a[1], b[0], b[1]));
     }
+
     function Distance2(x1, y1, x2, y2) {
         return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
     }
+
     function CheckNerar(a, b) {
         var ta = [], tb = [];
         GetTopPos(a, ta);
@@ -466,24 +583,19 @@ function init() {
     }
 
     function NewBody(b) {
-        //Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
-        //world.DestroyBody(Bodies[b].b2body);
-
-        while (Bodies[b].grap.firstChild) {
+        while (Bodies[b].grap.firstChild)
             Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
-        }
+
         MakeBody(b);
     }
-    function UpdateBodyValue(b, v) {
-        //Bodies[b].b2body.DestroyFixture(Bodies[b].b2body.GetFixtureList());
-        //world.DestroyBody(Bodies[b].b2body);
 
+    function UpdateBodyValue(b, v) {
         var shapes = new Array(BodyNum);
         for (var i = 0; i < BodyNum; i++)shapes[i] = Bodies[i].b2body.GetFixtureList().GetShape();
 
-        while (Bodies[b].grap.firstChild) {
+        while (Bodies[b].grap.firstChild)
             Bodies[b].grap.removeChild(Bodies[b].grap.firstChild);
-        }
+
         SetupBody(b, v, Bodies[b].color);
     }
 
@@ -540,9 +652,11 @@ function init() {
             return;
         }
 
+        if (Bodies[bodyindex].value % div != 0)
+            return;
+
         var newVal = Bodies[bodyindex].value / div;
 
-        //SetEffects(ToScreen(Body[n].body -> GetPosition().x), ToScreen(Body[n].body -> GetPosition().y), Touch[i].gcd);
         SetEffect(Bodies[bodyindex].b2body.GetPosition().x * scale, Bodies[bodyindex].b2body.GetPosition().y * scale, div);
         for (var s = div, p = 2; s > 1;) {
             if (s % p == 0) {
@@ -560,6 +674,7 @@ function init() {
         else
             UpdateBodyValue(bodyindex, newVal);
     }
+
     function BombProg() {
         for (var i = 0; i < Bomb.length; i++) {
             Bomb[i].time++;
@@ -580,9 +695,9 @@ function init() {
                         EraseBody(j, Bodies[j].value);
                         continue;
                     }
-                    if (dis < 10.0 && Bodies[j].value == -1) {
+                    if (dis < 10.0 && Bodies[j].value == -1)
                         SetBomb(j, false);
-                    }
+
                     var impulse = new b2Vec2;
                     impulse.x = pos.x - Bpos.x;
                     impulse.y = pos.y - Bpos.y;
@@ -593,19 +708,19 @@ function init() {
                 NewBody(Bomb[i].bodyIndex);
             }
         }
-        while (Bomb.length > 0 && Bomb[0].time >= 80) Bomb.shift();
+        while (Bomb.length > 0 && Bomb[0].time >= 80)
+            Bomb.shift();
     }
-    function EraseTouch() {
-        if (Touch.v.length >= 2) {
-            for (var i = 0; i < Touch.v.length; i++) {
 
+    function EraseTouch() {
+        if (Touch.v.length >= 2)
+            for (var i = 0; i < Touch.v.length; i++)
                 EraseBody(Touch.v[i], Touch.gcd);
-            }
-        }
+
         Touch.v = [];
         Touch.gcd = 0;
-        //remove(Touch, i);
     }
+
     function InputOpe() {
         if (MouseX != -1) {
             isTouch = true;
@@ -645,8 +760,6 @@ function init() {
         }
     }
 
-    //update
-    //var pathGrap = draw.nested();
     var pathGraph1 = document.createElementNS(ns, 'path');
     var pathGraph2 = document.createElementNS(ns, 'path');
     svg.appendChild(pathGraph1);
@@ -693,21 +806,22 @@ function init() {
         }
         return a.join('');
     }
+
     var HintSetSec = 0;
     var HintSetKey = -1;
     function SetHint() {
         HintSetKey = -1;
         if (MouseX != -1 &&
             counterPos.x <= MouseX && MouseX <= counterPos.x + counterPos.width &&
-            counterPos.y <= MouseY && MouseY <= counterPos.y + counterPos.height) {
+            counterPos.y <= MouseY && MouseY <= counterPos.y + counterPos.height)
             HintSetSec++;
-        } else {
+        else
             HintSetSec = 0;
-        }
+
         if (HintSetSec < 20) {
-            while (counterHint.firstChild) {
+            while (counterHint.firstChild)
                 counterHint.removeChild(counterHint.firstChild);
-            }
+
             return;
         }
 
@@ -720,9 +834,9 @@ function init() {
             for (var i = 0; i < BodyNum; i++) {
                 if (Bodies[i].value % key != 0) {
                     var hintBox = document.getElementById('hint' + i);
-                    if (hintBox != null) {
+                    if (hintBox != null)
                         hintBox.parentElement.removeChild(hintBox);
-                    }
+
                     continue;
                 }
 
@@ -746,8 +860,8 @@ function init() {
             }
         }
     }
+
     function update() {
-        //stage.suspend();
         InputOpe();
         BombProg();
         world.Step(1 / 60, 5, 5);
@@ -784,11 +898,10 @@ function init() {
 
         var path = '';
         for (var i = 0; i < Touch.v.length; i++) {
-            if (i == 0) {
+            if (i == 0)
                 path = 'M' + (Bodies[Touch.v[i]].b2body.GetPosition().x * scale + marginX) + ' ' + (Bodies[Touch.v[i]].b2body.GetPosition().y * scale + marginY);
-            } else {
+            else
                 path += 'L' + (Bodies[Touch.v[i]].b2body.GetPosition().x * scale + marginX) + ' ' + (Bodies[Touch.v[i]].b2body.GetPosition().y * scale + marginY);
-            }
         }
         svg.removeChild(pathGraph1);
         pathGraph1 = document.createElementNS(ns, 'path');
@@ -815,7 +928,6 @@ function init() {
         pathGraph1.setAttributeNS(null, 'marker-end', 'url(#Marke)');
         svg.appendChild(pathGraph2);
         MoveEffect();
-        //world.ClearForces();
         stats.update();
     };
 };
@@ -876,48 +988,8 @@ function init() {
         MouseY = -1;
     }, { passive: false });
 
-
-    for (var n of numbers) {
-        for (var s = n[0], p = 2; s > 1;) {
-            if (s % p == 0) {
-                s /= p;
-                facts[p] = 0;
-            }
-            else p++;
-        }
-    }
-
     ClientSizeX = document.getElementById('container').clientWidth;
     ClientSizeY = document.getElementById('container').clientHeight;
-
-    var countergHeight;
-    var CounterType = 0;
-    if (ClientSizeX >= ClientSizeY) {
-        countergHeight = ClientSizeY * 1.0 / Object.keys(facts).length;
-        marginX = 0;
-        marginY = 0;
-        ClientSizeX -= countergHeight * 2.5;
-        CounterType = 1;
-        counterPos = { x: ClientSizeX, y: 0, width: countergHeight * 2.5, height: ClientSizeY };
-    }
-    else {
-        var Len = Object.keys(facts).length;
-        countergHeight = (ClientSizeX / Math.floor((Len + 1) / 2)) / 2.5;
-        marginX = 0;
-        marginY = 0;
-        ClientSizeY -= countergHeight * 2.0;
-        CounterType = 2;
-        counterPos = { x: 0, y: ClientSizeY, width: ClientSizeX, height: countergHeight * 2 };
-    }
-
-    var WorldMul;
-    if (screen.width > 1000 || screen.height > 1000) WorldMul = 100;
-    else WorldMul = Math.floor(Math.pow(screen.width, 0.5) * 2);
-    WorldSizeX = Math.sqrt(WorldMul * ClientSizeX / ClientSizeY);
-    WorldSizeY = WorldMul / WorldSizeX;
-    scale = ClientSizeX / WorldSizeX;
-
-    BodyNum = Math.floor(WorldMul * 0.85);
 
     var div = document.getElementById('container');
 
@@ -926,119 +998,6 @@ function init() {
     svg.setAttributeNS(null, 'height', '100%');
     div.appendChild(svg)
 
-    mainCont = document.createElementNS(ns, 'g')
-    svg.appendChild(mainCont);
-
-    var defs = document.createElementNS(ns, 'defs');
-    svg.appendChild(defs);
-    var marker = document.createElementNS(ns, 'marker');
-    marker.setAttributeNS(null, 'id', 'Marke');
-    marker.setAttributeNS(null, 'refX', '1');
-    marker.setAttributeNS(null, 'refY', '1');
-    marker.setAttributeNS(null, 'markerWidth', '2');
-    marker.setAttributeNS(null, 'markerHeight', '2');
-    defs.appendChild(marker);
-    //var mark = document.createElementNS(ns, 'path');
-    //mark.setAttributeNS(null, 'd', 'M1 0.2L1.8 1L1 1.8L0.2 1z');
-    //mark.setAttributeNS(null, 'fill', '#f49e42');
-    //marker.appendChild(mark);
-    //var mark = document.createElementNS(ns, 'path');
-    //mark.setAttributeNS(null, 'd', 'M1 0.6L1.4 1L1 1.4L0.6 1z');
-    //mark.setAttributeNS(null, 'fill', '#42bcf4');
-    //marker.appendChild(mark);
-    var mark = document.createElementNS(ns, 'circle');
-    mark.setAttributeNS(null, 'cx', '1');
-    mark.setAttributeNS(null, 'cy', '1');
-    mark.setAttributeNS(null, 'r', '1');
-    mark.setAttributeNS(null, 'fill', '#b2ff2d');
-    marker.appendChild(mark);
-
-    if (CounterType == 1) {
-        var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
-        for (var i = 0; i < 10; i++) {
-            for (var n of NumberImageD[i]) {
-                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
-                else NumberImage2[i] += n;
-            }
-        }
-        var posy = 0;
-        for (var key in facts) {
-            if (!facts.hasOwnProperty(key)) continue;
-            counterg[key] = document.createElementNS(ns, 'g');
-            counterg[key].setAttributeNS(null, 'width', '100%');
-            counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
-            counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX + ',' + posy + ')');
-            svg.appendChild(counterg[key]);
-            countergPos[key] = { x: ClientSizeX, y: posy, width: countergHeight * 2.5, height: countergHeight };
-            posy += countergHeight;
-        }
-    }
-    else {
-        var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
-        for (var i = 0; i < 10; i++) {
-            for (var n of NumberImageD[i]) {
-                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
-                else NumberImage2[i] += n;
-            }
-        }
-        var posx = 0;
-        var posy = ClientSizeY;
-        for (var key in facts) {
-            if (!facts.hasOwnProperty(key)) continue;
-            counterg[key] = document.createElementNS(ns, 'g');
-            counterg[key].setAttributeNS(null, 'width', '' + countergHeight * 2.5);
-            counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
-            counterg[key].setAttributeNS(null, 'transform', 'translate(' + posx + ',' + posy + ')');
-            svg.appendChild(counterg[key]);
-            countergPos[key] = { x: posx, y: posy, width: countergHeight * 2.5, height: countergHeight };
-            posx += countergHeight * 2.5;
-            if (posx + countergHeight * 2.5 - countergHeight * 2.1 > ClientSizeX) {
-                posx = 0;
-                posy += countergHeight;
-            }
-        }
-    }
-
-    for (var key in facts) {
-        if (!facts.hasOwnProperty(key)) continue;
-        //imgbox.setAttributeNS(null, 'width', countergHeight * 0.5 * String(key).length * 0.8)
-        //imgbox.setAttributeNS(null, 'height', countergHeight * 0.8)
-        //imgbox.setAttributeNS(null, 'x', countergHeight * 0.1)
-        //imgbox.setAttributeNS(null, 'y', countergHeight * 0.1)
-
-        countergColor[key] = Color[Math.floor(Math.random() * Color.length)]
-        counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
-
-        var imgbox = document.createElementNS(ns, 'rect')
-        imgbox.setAttributeNS(null, 'width', countergHeight * 2.5 * 0.9)
-        imgbox.setAttributeNS(null, 'height', countergHeight * 0.1)
-        imgbox.setAttributeNS(null, 'x', countergHeight * 2.5 * 0.05)
-        imgbox.setAttributeNS(null, 'y', countergHeight * 0.8)
-        counterg[key].appendChild(imgbox)
-
-        for (var i = 0; i < String(key).length; i++) {
-            var num = Math.floor(key / Math.pow(10, String(key).length - i - 1)) % 10;
-            var img = document.createElementNS(ns, 'path');
-            img.setAttributeNS(null, 'd', 'M' + (NumberImageMX[num] * countergHeight * 0.8 / 200.0 + countergHeight * 0.8 / 2 * i + countergHeight * 0.1) + ' ' + (NumberImageMY[num] * countergHeight * 0.8 / 200.0 + countergHeight * 0.1) + NumberImage2[num]);
-            counterg[key].appendChild(img);
-        }
-
-        var text = document.createElementNS(ns, 'text')
-        text.setAttributeNS(null, 'height', countergHeight)
-        text.setAttributeNS(null, 'x', countergHeight)
-        text.setAttributeNS(null, 'y', countergHeight * 0.63)
-        text.setAttributeNS(null, 'font-size', '' + countergHeight * 0.7)
-        text.setAttributeNS(null, 'font-family', "'Concert One',Helvetica Neue, Helvetica, ヒラギノ角ゴ Pro W3, Yu Gothic, sans-serif")
-        text.setAttributeNS(null, 'dominant-baseline', 'middle')
-        text.setAttributeNS(null, 'font-weight', '400')
-        text.setAttributeNS(null, 'fill', '#000')
-        counterg[key].appendChild(text);
-
-        counterVal[key] = document.createTextNode('' + zeroPadding(0, 3));
-        text.appendChild(counterVal[key]);
-    }
-
-    counterHint = document.createElementNS(ns, 'g')
-    svg.appendChild(counterHint);
     init();
+    main();
 })();
