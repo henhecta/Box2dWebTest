@@ -154,7 +154,8 @@ var Color = [
     "#fa9400",
 ];
 
-var zeroPadding = function (number, digit) {
+var zeroPadding = function (number) {
+    var digit=4;
     var numberLength = String(number).length;
     if (digit > numberLength)
         return (new Array((digit - numberLength) + 1).join(0)) + number;
@@ -163,7 +164,7 @@ var zeroPadding = function (number, digit) {
 };
 
 var Effect = new Array();
-
+const CounterSize=2.9;
 function init() {
     var div = document.getElementById('container');
 
@@ -183,13 +184,13 @@ function init() {
         countergHeight = ClientSizeY * 1.0 / Object.keys(facts).length;
         marginX = 0;
         marginY = 0;
-        ClientSizeX -= countergHeight * 2.5;
+        ClientSizeX -= countergHeight * CounterSize;
         CounterType = 1;
-        counterPos = { x: ClientSizeX, y: 0, width: countergHeight * 2.5, height: ClientSizeY };
+        counterPos = { x: ClientSizeX, y: 0, width: countergHeight * CounterSize, height: ClientSizeY };
     }
     else {
         var Len = Object.keys(facts).length;
-        countergHeight = (ClientSizeX / Math.floor((Len + 1) / 2)) / 2.5;
+        countergHeight = (ClientSizeX / Math.floor((Len + 1) / 2)) / CounterSize;
         marginX = 0;
         marginY = 0;
         ClientSizeY -= countergHeight * 2.0;
@@ -242,7 +243,7 @@ function init() {
             counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
             counterg[key].setAttributeNS(null, 'transform', 'translate(' + ClientSizeX + ',' + posy + ')');
             svg.appendChild(counterg[key]);
-            countergPos[key] = { x: ClientSizeX, y: posy, width: countergHeight * 2.5, height: countergHeight };
+            countergPos[key] = { x: ClientSizeX, y: posy, width: countergHeight * CounterSize, height: countergHeight };
             posy += countergHeight;
         }
     }
@@ -259,13 +260,13 @@ function init() {
         for (var key in facts) {
             if (!facts.hasOwnProperty(key)) continue;
             counterg[key] = document.createElementNS(ns, 'g');
-            counterg[key].setAttributeNS(null, 'width', '' + countergHeight * 2.5);
+            counterg[key].setAttributeNS(null, 'width', '' + countergHeight * CounterSize);
             counterg[key].setAttributeNS(null, 'height', '' + (100.0 / Object.keys(facts).length) + '%');
             counterg[key].setAttributeNS(null, 'transform', 'translate(' + posx + ',' + posy + ')');
             svg.appendChild(counterg[key]);
-            countergPos[key] = { x: posx, y: posy, width: countergHeight * 2.5, height: countergHeight };
-            posx += countergHeight * 2.5;
-            if (posx + countergHeight * 2.5 - countergHeight * 2.1 > ClientSizeX) {
+            countergPos[key] = { x: posx, y: posy, width: countergHeight * CounterSize, height: countergHeight };
+            posx += countergHeight * CounterSize;
+            if (posx + countergHeight * CounterSize - countergHeight * 2.1 > ClientSizeX) {
                 posx = 0;
                 posy += countergHeight;
             }
@@ -279,9 +280,9 @@ function init() {
         counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
 
         var imgbox = document.createElementNS(ns, 'rect')
-        imgbox.setAttributeNS(null, 'width', countergHeight * 2.5 * 0.9)
+        imgbox.setAttributeNS(null, 'width', countergHeight * CounterSize * 0.9)
         imgbox.setAttributeNS(null, 'height', countergHeight * 0.1)
-        imgbox.setAttributeNS(null, 'x', countergHeight * 2.5 * 0.05)
+        imgbox.setAttributeNS(null, 'x', countergHeight * CounterSize * 0.05)
         imgbox.setAttributeNS(null, 'y', countergHeight * 0.8)
         counterg[key].appendChild(imgbox)
 
@@ -303,7 +304,7 @@ function init() {
         text.setAttributeNS(null, 'fill', '#000')
         counterg[key].appendChild(text);
 
-        counterVal[key] = document.createTextNode('' + zeroPadding(0, 3));
+        counterVal[key] = document.createTextNode('' + zeroPadding(0));
         text.appendChild(counterVal[key]);
     }
 
@@ -662,7 +663,7 @@ function main() {
             if (s % p == 0) {
                 s /= p;
                 facts[p]++;
-                counterVal[p].nodeValue = '' + zeroPadding(facts[p], 3);
+                counterVal[p].nodeValue = '' + zeroPadding(facts[p]);
                 SaveCookie();
             }
             else
