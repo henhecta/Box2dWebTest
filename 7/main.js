@@ -156,12 +156,12 @@ for (var n of numbers) {
         var cookieArray = cookies.split(';');
         for (var i = 0; i < cookieArray.length; i++) {
             var cookie = cookieArray[i].split('=');
-            result[Number(cookie[0])] = cookie[1];
+            result['' + cookie[0]] = cookie[1];
         }
     }
 
     for (var key in facts) {
-        if (result[key]) {
+        if (result['' + key]) {
             facts[key] = Number(result[key]);
         }
     }
@@ -941,7 +941,7 @@ function main() {
                     counterHint.appendChild(hintBox);
                 }
                 var nowtime = new Date();
-                var PassTime = nowtime.getTime() - HintSetTime.getTime()-300;
+                var PassTime = nowtime.getTime() - HintSetTime.getTime() - 300;
                 hintBox.setAttributeNS(null, 'fill-opacity', Math.min(PassTime / 500 * 0.4, 0.4));
                 hintBox.setAttributeNS(null, 'stroke-opacity', Math.min(PassTime / 500, 1.0));
                 hintBox.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
