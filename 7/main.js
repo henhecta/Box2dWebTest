@@ -163,7 +163,6 @@ for (var n of numbers) {
     for (var key in facts) {
         if (result[key]) {
             facts[key] = Number(result[key]);
-            counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
         }
     }
     if (result['effect'])
@@ -416,6 +415,7 @@ function init() {
 
         counterVal[key] = document.createTextNode('' + zeroPadding(0));
         text.appendChild(counterVal[key]);
+        counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
     }
 
     counterHint = document.createElementNS(ns, 'g')
