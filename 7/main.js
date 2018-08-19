@@ -5,14 +5,14 @@ var WorldSizeX = 10, WorldSizeY = 10;
 var isTouch = false;
 var MouseX = -1, MouseY = -1;
 
-const DMax = 0.8;
+const DMax = 0.65;
 
-var stats = new Stats();
-stats.domElement.style.position = 'absolute';
-stats.domElement.style.left = '0px';
-stats.domElement.style.top = '0px';
-
-document.body.appendChild(stats.domElement);
+//var stats = new Stats();
+//stats.domElement.style.position = 'absolute';
+//stats.domElement.style.left = '0px';
+//stats.domElement.style.top = '0px';
+//
+//document.body.appendChild(stats.domElement);
 
 var svg;
 var ns = 'http://www.w3.org/2000/svg'
@@ -25,12 +25,12 @@ var counterg = new Object();
 var countergPos = new Object();
 var countergColor = new Object();
 var counterVal = new Object();
-var facts = new Object();
 var marginX, marginY;
 var BodyNum;
+var Setting = { effect: '0', number: '0' };
 
 var numbers = [
-    [-1, 30],
+    [-1, 20],
     [2, 70],
     [3, 70],
     [4, 70],
@@ -128,6 +128,40 @@ var numbers = [
     [6541380665835015, 3]
     //MX[9007199254740991, 3]
 ];
+var facts = new Object();
+for (var n of numbers) {
+    for (var s = n[0], p = 2; s > 1;) {
+        if (s % p == 0) {
+            s /= p;
+            facts[p] = 0;
+        }
+        else p++;
+    }
+}
+(function () {
+    var result = [];
+    var cookies = document.cookie;
+
+    if (cookies != '') {
+        var cookieArray = cookies.split(';');
+        for (var i = 0; i < cookieArray.length; i++) {
+            var cookie = cookieArray[i].split('=');
+            result[Number(cookie[0])] = cookie[1];
+        }
+    }
+
+    for (var key in facts) {
+        if (result[key]) {
+            facts[key] = Number(result[key]);
+            counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
+        }
+    }
+    if (result['effect'])
+        Setting.effect = result['effect'];
+
+    if (result['number'])
+        Setting.number = result['number'];
+})();
 
 var NumberImageD = [
     ['c', 36, 0, 42, 47, 41, 75, 0, 28, -5, 75, -41, 75, 's', -41, -46, -41, -75, 's', 5, -75, 41, -75, 'zm', 0, 21, 'c', -12, 0, -17, 18, -17, 54, 0, 35, 5, 53, 17, 53, 's', 18, -17, 18, -53, -6, -54, -18, -54, 'z'],
@@ -155,7 +189,7 @@ var Color = [
 ];
 
 var zeroPadding = function (number) {
-    var digit=4;
+    var digit = 4;
     var numberLength = String(number).length;
     if (digit > numberLength)
         return (new Array((digit - numberLength) + 1).join(0)) + number;
@@ -164,19 +198,80 @@ var zeroPadding = function (number) {
 };
 
 var Effect = new Array();
-const CounterSize=2.9;
+const CounterSize = 2.9;
+function resetCount() {
+    for (var key in facts) {
+        facts[key] = 0;
+    }
+    SaveCookie();
+}
 function init() {
+    document.getElementsByTagName('body')[0].style = "margin:0;padding:0;position:absolute;width:100%;height:100%;";
+    document.getElementById('container').style = 'margin:0;padding:0;position:absolute;width:100%;height:100%;';
+
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function (callback) {
+            setTimeout(callback, DEFAULT_FRAME_INTERVAL);
+        };
+
+    document.getElementById('container').addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        MouseX = e.changedTouches[0].pageX - marginX;
+        MouseY = e.changedTouches[0].pageY - marginY;
+        return false;
+    }, { passive: false });
+
+    document.getElementById('container').addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        MouseX = e.clientX - marginX;
+        MouseY = e.clientY - marginY;
+        return false;
+    }, { passive: false });
+
+    document.getElementById('container').addEventListener('touchmove', function (e) {
+        e.preventDefault();
+        if (MouseX != -1) {
+            MouseX = e.changedTouches[0].pageX - marginX;
+            MouseY = e.changedTouches[0].pageY - marginY;
+        }
+        return false;
+    }, { passive: false });
+
+    document.getElementById('container').addEventListener('mousemove', function (e) {
+        e.preventDefault();
+        if (MouseX != -1) {
+            MouseX = e.clientX - marginX;
+            MouseY = e.clientY - marginY;
+        }
+        return false;
+    }, { passive: false });
+
+    document.getElementById('container').addEventListener('touchend', function (e) {
+        e.preventDefault();
+        MouseX = -1;
+        MouseY = -1;
+    }, { passive: false });
+
+    document.getElementById('container').addEventListener('mouseup', function (e) {
+        e.preventDefault();
+        MouseX = -1;
+        MouseY = -1;
+    }, { passive: false });
+
+    ClientSizeX = document.getElementById('container').clientWidth;
+    ClientSizeY = document.getElementById('container').clientHeight;
+
     var div = document.getElementById('container');
 
-    for (var n of numbers) {
-        for (var s = n[0], p = 2; s > 1;) {
-            if (s % p == 0) {
-                s /= p;
-                facts[p] = 0;
-            }
-            else p++;
-        }
-    }
+    svg = document.createElementNS(ns, 'svg');
+    svg.setAttributeNS(null, 'width', '100%');
+    svg.setAttributeNS(null, 'height', '100%');
+    div.appendChild(svg)
+
 
     var countergHeight;
     var CounterType = 0;
@@ -201,11 +296,25 @@ function init() {
     var WorldMul;
     if (screen.width > 1000 || screen.height > 1000) WorldMul = 100;
     else WorldMul = Math.floor(Math.pow(screen.width, 0.5) * 2);
+    switch (Setting.number) {
+        case '3': WorldMul *= 15; break;
+        case '2': WorldMul *= 4; break;
+        case '1': WorldMul *= 2; break;
+        case '-1': WorldMul *= 0.6; break;
+        case '-2': WorldMul *= 0.4; break;
+        case '-3': WorldMul = 20; break;
+    }
     WorldSizeX = Math.sqrt(WorldMul * ClientSizeX / ClientSizeY);
     WorldSizeY = WorldMul / WorldSizeX;
     scale = ClientSizeX / WorldSizeX;
 
-    BodyNum = Math.floor(WorldMul * 0.85);
+    switch (Setting.number) {
+        case '3': BodyNum = Math.floor(WorldMul * 1.1); break;
+        case '2': BodyNum = Math.floor(WorldMul * 1.0); break;
+        case '-2': BodyNum = Math.floor(WorldMul * 0.6); break;
+        case '-3': BodyNum = 4; break;
+        default: BodyNum = Math.floor(WorldMul * 0.85);
+    }
 
     mainCont = document.createElementNS(ns, 'g')
     svg.appendChild(mainCont);
@@ -313,9 +422,9 @@ function init() {
 }
 function main() {
     var Bomb = new Array();
-    
+
     function gcd(m, n) { return (n == 0) ? Math.abs(m) : gcd(n, m % n); }
-    
+
     var b2Vec2 = Box2D.Common.Math.b2Vec2
         , b2AABB = Box2D.Collision.b2AABB
         , b2BodyDef = Box2D.Dynamics.b2BodyDef
@@ -341,7 +450,7 @@ function main() {
 
     var fixtureDef = new b2FixtureDef;
     fixtureDef.density = 1.0;
-    fixtureDef.friction = 0.3;
+    fixtureDef.friction = 0.6;
     fixtureDef.restitution = 0.4;
     var bodyDef = new b2BodyDef;
     var Bodies = new Array();
@@ -371,36 +480,9 @@ function main() {
     for (var i = 0; i < BodyNum; i++)
         MakeFirstBody(i);
 
-    LoadCookie();
 
     window.setInterval(update, 1000 / 60);
 
-    function SaveCookie() {
-        var expire = new Date();
-        expire.setTime(expire.getTime() + 1000 * 3600 * 24 * 365 * 3);
-        for (var key in facts)
-            document.cookie = key + '=' + facts[key] + '; expires=' + expire.toUTCString();
-    }
-
-    function LoadCookie() {
-        var result = [];
-        var cookies = document.cookie;
-
-        if (cookies != '') {
-            var cookieArray = cookies.split(';');
-            for (var i = 0; i < cookieArray.length; i++) {
-                var cookie = cookieArray[i].split('=');
-                result[Number(cookie[0])] = cookie[1];
-            }
-        }
-
-        for (var key in facts) {
-            if (result[key]) {
-                facts[key] = Number(result[key]);
-                counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
-            }
-        }
-    }
 
     function GetRandNumber() {
         var sum = 0;
@@ -647,7 +729,7 @@ function main() {
 
         Bomb.push({ bodyIndex: bodyindex, time: 0 });
     }
-    function EraseBody(bodyindex, div) {
+    function EraseBody(bodyindex, div, showEffect) {
         if (Bodies[bodyindex].value == -1) {
             SetBomb(bodyindex);
             return;
@@ -658,7 +740,7 @@ function main() {
 
         var newVal = Bodies[bodyindex].value / div;
 
-        SetEffect(Bodies[bodyindex].b2body.GetPosition().x * scale, Bodies[bodyindex].b2body.GetPosition().y * scale, div);
+        if (showEffect) SetEffect(Bodies[bodyindex].b2body.GetPosition().x * scale, Bodies[bodyindex].b2body.GetPosition().y * scale, div);
         for (var s = div, p = 2; s > 1;) {
             if (s % p == 0) {
                 s /= p;
@@ -693,7 +775,7 @@ function main() {
                     var pos = Bodies[j].b2body.GetPosition();
                     var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
                     if (dis < 4.2) {
-                        EraseBody(j, Bodies[j].value);
+                        EraseBody(j, Bodies[j].value, Setting.effect == '0');
                         continue;
                     }
                     if (dis < 10.0 && Bodies[j].value == -1)
@@ -716,7 +798,7 @@ function main() {
     function EraseTouch() {
         if (Touch.v.length >= 2)
             for (var i = 0; i < Touch.v.length; i++)
-                EraseBody(Touch.v[i], Touch.gcd);
+                EraseBody(Touch.v[i], Touch.gcd, Setting.effect != '-2');
 
         Touch.v = [];
         Touch.gcd = 0;
@@ -766,7 +848,7 @@ function main() {
     svg.appendChild(pathGraph1);
     svg.appendChild(pathGraph2);
 
-    var TouchLe = 0;
+    var TouchTime = -1;
     function darken(hexstr, scalefactor) {
         if (scalefactor < 0) scalefactor = 0;
         if (scalefactor > 1) scalefactor = 1;
@@ -808,18 +890,20 @@ function main() {
         return a.join('');
     }
 
-    var HintSetSec = 0;
+    var HintSetTime = -1;
     var HintSetKey = -1;
     function SetHint() {
         HintSetKey = -1;
         if (MouseX != -1 &&
             counterPos.x <= MouseX && MouseX <= counterPos.x + counterPos.width &&
-            counterPos.y <= MouseY && MouseY <= counterPos.y + counterPos.height)
-            HintSetSec++;
+            counterPos.y <= MouseY && MouseY <= counterPos.y + counterPos.height) {
+            if (HintSetTime == -1)
+                HintSetTime = new Date();
+        }
         else
-            HintSetSec = 0;
+            HintSetTime = -1;
 
-        if (HintSetSec < 20) {
+        if (HintSetTime == -1) {
             while (counterHint.firstChild)
                 counterHint.removeChild(counterHint.firstChild);
 
@@ -827,8 +911,8 @@ function main() {
         }
 
         for (var key in facts) {
-            if (MouseX <= countergPos[key].x || countergPos[key].x + countergPos[key].width <= MouseX ||
-                MouseY <= countergPos[key].y || countergPos[key].y + countergPos[key].height <= MouseY)
+            if (MouseX < countergPos[key].x || countergPos[key].x + countergPos[key].width < MouseX ||
+                MouseY < countergPos[key].y || countergPos[key].y + countergPos[key].height < MouseY)
                 continue;
 
             HintSetKey = key;
@@ -855,8 +939,10 @@ function main() {
                     hintBox.setAttributeNS(null, 'stroke-width', 0.1 * scale);
                     counterHint.appendChild(hintBox);
                 }
-                hintBox.setAttributeNS(null, 'fill-opacity', Math.min((HintSetSec - 20) * 0.05 * 0.4, 0.4));
-                hintBox.setAttributeNS(null, 'stroke-opacity', Math.min((HintSetSec - 20) * 0.05, 1.0));
+                var nowtime = new Date();
+                var PassTime = nowtime.getTime() - HintSetTime.getTime()-300;
+                hintBox.setAttributeNS(null, 'fill-opacity', Math.min(PassTime / 500 * 0.4, 0.4));
+                hintBox.setAttributeNS(null, 'stroke-opacity', Math.min(PassTime / 500, 1.0));
                 hintBox.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
             }
         }
@@ -876,16 +962,22 @@ function main() {
         }
         SetHint();
 
-        if (MouseX != -1) TouchLe++; else TouchLe = 0;
+        if (MouseX != -1) {
+            if (TouchTime == -1)
+                TouchTime = new Date();
+        }
+        else TouchTime = -1;
 
-        if (TouchLe > 20) {
+        var nowTime = new Date();
+        var PassTime = TouchTime == -1 ? 0 : nowTime.getTime() - TouchTime.getTime();
+        if (PassTime > 300) {
             for (var key in facts) {
                 if ((Touch.gcd != 0 && Touch.gcd % key == 0) || HintSetKey == key) {
                     counterg[key].setAttributeNS(null, 'fill', countergColor[key]);
-                    counterVal[key].parentNode.setAttributeNS(null, 'fill', '#' + darken(countergColor[key].slice(1), (TouchLe - 20) * 0.1));
+                    counterVal[key].parentNode.setAttributeNS(null, 'fill', '#' + darken(countergColor[key].slice(1), (PassTime - 300) * 0.004));
                 }
                 else {
-                    counterg[key].setAttributeNS(null, 'fill', '#' + darken(countergColor[key].slice(1), 1 - (TouchLe - 20) * 0.1));
+                    counterg[key].setAttributeNS(null, 'fill', '#' + darken(countergColor[key].slice(1), 1 - (PassTime - 300) * 0.004));
                     counterVal[key].parentNode.setAttributeNS(null, 'fill', '#000');
                 }
             }
@@ -929,76 +1021,228 @@ function main() {
         pathGraph1.setAttributeNS(null, 'marker-end', 'url(#Marke)');
         svg.appendChild(pathGraph2);
         MoveEffect();
-        stats.update();
+        //stats.update();
     };
 };
 
-(function () {
-    document.getElementById('container').style.background = '#FFF';
+function SaveCookie() {
+    var expire = new Date();
+    expire.setTime(expire.getTime() + 1000 * 3600 * 24 * 365 * 5);
+    for (var key in facts)
+        document.cookie = key + '=' + facts[key] + '; expires=' + expire.toUTCString();
 
-    window.requestAnimationFrame = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function (callback) {
-            setTimeout(callback, DEFAULT_FRAME_INTERVAL);
-        };
+    document.cookie = 'effect' + '=' + Setting.effect + '; expires=' + expire.toUTCString();
+    document.cookie = 'number' + '=' + Setting.number + '; expires=' + expire.toUTCString();
+}
 
-    document.getElementById('container').addEventListener('touchstart', function (e) {
-        e.preventDefault();
-        MouseX = e.changedTouches[0].pageX - marginX;
-        MouseY = e.changedTouches[0].pageY - marginY;
-        return false;
-    }, { passive: false });
-
-    document.getElementById('container').addEventListener('mousedown', function (e) {
-        e.preventDefault();
-        MouseX = e.clientX - marginX;
-        MouseY = e.clientY - marginY;
-        return false;
-    }, { passive: false });
-
-    document.getElementById('container').addEventListener('touchmove', function (e) {
-        e.preventDefault();
-        if (MouseX != -1) {
-            MouseX = e.changedTouches[0].pageX - marginX;
-            MouseY = e.changedTouches[0].pageY - marginY;
-        }
-        return false;
-    }, { passive: false });
-
-    document.getElementById('container').addEventListener('mousemove', function (e) {
-        e.preventDefault();
-        if (MouseX != -1) {
-            MouseX = e.clientX - marginX;
-            MouseY = e.clientY - marginY;
-        }
-        return false;
-    }, { passive: false });
-
-    document.getElementById('container').addEventListener('touchend', function (e) {
-        e.preventDefault();
-        MouseX = -1;
-        MouseY = -1;
-    }, { passive: false });
-
-    document.getElementById('container').addEventListener('mouseup', function (e) {
-        e.preventDefault();
-        MouseX = -1;
-        MouseY = -1;
-    }, { passive: false });
-
-    ClientSizeX = document.getElementById('container').clientWidth;
-    ClientSizeY = document.getElementById('container').clientHeight;
-
+var SeNumber = { '-3': '少なすぎ', '-2': 'すごく少ない', '-1': '少ない', '0': 'ふつう', '1': '多い', '2': 'すごく多い', '3': '多すぎ' };
+var SeEffect = { '-2': 'なし', '-1': '少ない', '0': '全て' };
+function ClickSettings() {
     var div = document.getElementById('container');
+    while (div.firstChild)
+        div.removeChild(div.firstChild);
 
-    svg = document.createElementNS(ns, 'svg');
-    svg.setAttributeNS(null, 'width', '100%');
-    svg.setAttributeNS(null, 'height', '100%');
-    div.appendChild(svg)
+    div.innerHTML = "\
+    <style>\
+        div div {\
+            text-align: center;\
+            max-width: 70vh;\
+            width: 90vw;\
+            margin: 5vh auto;\
+            padding: 1vh;\
+            background-color: #ddd;\
+        }\
+\
+        input[type=button] {\
+            margin: 0 auto;\
+            padding: 1vh;\
+            display: inline-block;\
+            text-align: center;\
+            text-decoration: none;\
+            position: relative;\
+            background-color: #4d95d1;\
+            border-radius: 4px;\
+            color: #fff;\
+            box-shadow: 0 3px 0 #3070a5;\
+            text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
+            vertical-align: middle;\
+            border-style: none;\
+            font-size: 4vh;\
+            font-weight: 600;\
+        }\
+\
+            input[type=button]:hover {\
+                background-color: #57aaee;\
+                box-shadow: 0 3px 0 #3070a5;\
+            }\
+\
+            input[type=button]:active {\
+                top: 3px;\
+                box-shadow: none;\
+            }\
+\
+        h2 {\
+            font-size: 3vh;\
+        }\
+\
+        p {\
+            margin: 2vh;\
+            font-size: 2vh;\
+        }\
+\
+        input[type=range] {\
+            margin: 0 auto;\
+            -webkit-appearance: none;\
+            width: 100%;\
+            height: 8vh;\
+            background: #ddd;\
+        }\
+\
+            input[type=range]:focus {\
+                outline: none;\
+            }\
+\
+            input[type=range]::-webkit-slider-runnable-track {\
+                width: 100%;\
+                height: 0.5vh;\
+                cursor: pointer;\
+                background: #25619e;\
+            }\
+\
+            input[type=range]::-webkit-slider-thumb {\
+                border: 2.4px solid #e43a29;\
+                height: 6vh;\
+                width: 3vh;\
+                border-radius: 2vh;\
+                background: #ffffff;\
+                cursor: pointer;\
+                -webkit-appearance: none;\
+                margin-top: -3vh;\
+            }\
+\
+            input[type=range]:focus::-webkit-slider-runnable-track {\
+                background: #2664a2;\
+            }\
+\
+            input[type=range]::-moz-range-track {\
+                width: 100%;\
+                height: 0.5vh;\
+                cursor: pointer;\
+                background: #25619e;\
+            }\
+\
+            input[type=range]::-moz-range-thumb {\
+                box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
+                border: 2.4px solid #e43a29;\
+                height: 6vh;\
+                width: 3vh;\
+                border-radius: 2vh;\
+                background: #ffffff;\
+                cursor: pointer;\
+            }\
+\
+            input[type=range]::-ms-track {\
+                width: 100%;\
+                height: 2px;\
+                cursor: pointer;\
+                background: transparent;\
+                border-color: transparent;\
+                color: transparent;\
+            }\
+\
+            input[type=range]::-ms-fill-lower {\
+                background: #245e9a;\
+            }\
+\
+            input[type=range]::-ms-fill-upper {\
+                background: #25619e;\
+            }\
+\
+            input[type=range]::-ms-thumb {\
+                box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
+                border: 2.4px solid #e43a29;\
+                border-radius: 2vh;\
+                background: #ffffff;\
+                cursor: pointer;\
+                width: 30vh;\
+                height: 60vh;\
+            }\
+\
+            input[type=range]:focus::-ms-fill-lower {\
+                background: #25619e;\
+            }\
+\
+            input[type=range]:focus::-ms-fill-upper {\
+                background: #2664a2;\
+            }\
+\
+        output {\
+            margin: 0;\
+            font-size: 3vh;\
+            font-weight: 600;\
+        }\
+    </style>\
+    <div>\
+        <input type='button' value='リセット' onclick='if (window.confirm(\"カウントをリセットします\")) { resetCount();window.alert(\"リセットしました\"); }' />\
+        <p>このボタンを押すと、素因数カウントが０にリセットされます。</p>\
+    </div>\
+    <div>\
+        <h2>一度に落ちてくる数の多さ</h2>\
+            <input type='range' value='"+ Setting.number + "' min='-3' max='3' step='1' class='range'\
+                   oninput='Setting.number=this.value;var str=\"\"; document.getElementById(\"output1\").value = SeNumber[this.value];'>\
+        <output id='output1'>"+ SeNumber['' + Setting.number] + "</output>\
+        <p>動作が重い場合は、これで調節してください。</p>\
+    </div>\
+    <div>\
+        <h2>エフェクト</h2>\
+        <input type='range' value='"+ Setting.effect + "' min='-2' max='0' step='1' class='range'\
+               oninput='Setting.effect=this.value;var str = \"\"; switch(this.value){case \"-2\": str=\"なし\"; break; case \"-1\": str=\"少ない\";break; case \"0\": str=\"全て\"; break; }document.getElementById(\"output2\").value = str;'>\
+        <output id='output2'>"+ SeEffect['' + Setting.effect] + "</output>\
+        <p>分解したときに表示されるエフェクトの表示を設定します。<br />動作が重い場合は、これで調節してください。</p>\
+    </div>\
+    <div>\
+        <h2>Cookieの使用について</h2>\
+        <p>このゲームでは、素因数カウントや、この設定のデータを保存するためにCookieを使用しています。Cookieが有効になっていない場合、これらのデータは保存されません。</p>\
+    </div>\
+    <div style='background-color: #fff;'><input type='button' value='戻る' onclick='SaveCookie();BackSettings()' style='width:30vh' /></div>\
+            ";
+}
+function BackSettings() {
+    var div = document.getElementById('container');
+    while (div.firstChild)
+        div.removeChild(div.firstChild);
 
-    init();
-    main();
-})();
+    div.innerHTML = '\
+    <style>\
+        input[type=button] {\
+            margin: 0 auto;\
+            width: 60vw;\
+            display: inline-block;\
+            text-align: center;\
+            text-decoration: none;\
+            position: relative;\
+            background-color: #4d95d1;\
+            border-radius: 4px;\
+            color: #fff;\
+            box-shadow: 0 3px 0 #3070a5;\
+            text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
+            vertical-align: middle;\
+            border-style: none;\
+            font-weight: 600;\
+        }\
+                \
+            input[type=button]:hover {\
+                background-color: #57aaee;\
+                box-shadow: 0 3px 0 #3070a5;\
+            }\
+                \
+            input[type=button]:active {\
+                top: 3px;\
+                box-shadow: none;\
+            }\
+    </style>\
+    <div style="text-align:center;"><input type="button" value="すたーと" style="margin-top:25vh;margin-bottom:10vh;width: 80vw;max-width:40vh; line-height: 10vh;font-size: 8vh;"onclick="var div = document.getElementById(\'container\');while(div.firstChild)div.removeChild(div.firstChild);init();main();" /></div>\
+    <div style="text-align:center;"><input type="button" value="設定" style="width: 60vw;max-width:40vh;line-height: 10vh;font-size: 7vh;"onclick="ClickSettings()" /></div>\
+            ';
+}
+BackSettings();
