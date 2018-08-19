@@ -129,6 +129,16 @@ var numbers = [
     //MX[9007199254740991, 3]
 ];
 var facts = new Object();
+
+var zeroPadding = function (number) {
+    var digit = 4;
+    var numberLength = String(number).length;
+    if (digit > numberLength)
+        return (new Array((digit - numberLength) + 1).join(0)) + number;
+    else
+        return number;
+};
+
 for (var n of numbers) {
     for (var s = n[0], p = 2; s > 1;) {
         if (s % p == 0) {
@@ -187,15 +197,6 @@ var Color = [
     "#57aaee",
     "#fa9400",
 ];
-
-var zeroPadding = function (number) {
-    var digit = 4;
-    var numberLength = String(number).length;
-    if (digit > numberLength)
-        return (new Array((digit - numberLength) + 1).join(0)) + number;
-    else
-        return number;
-};
 
 var Effect = new Array();
 const CounterSize = 2.9;
