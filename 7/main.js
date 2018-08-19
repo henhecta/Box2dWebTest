@@ -139,8 +139,8 @@ var zeroPadding = function (number) {
         return number;
 };
 
-for (var n of numbers) {
-    for (var s = n[0], p = 2; s > 1;) {
+for (var i = 0; i < numbers.length;i++) {
+    for (var s = numbers[i][0], p = 2; s > 1;) {
         if (s % p == 0) {
             s /= p;
             facts[p] = 0;
@@ -206,8 +206,8 @@ function resetCount() {
     SaveCookie();
 }
 function init() {
-    document.getElementsByTagName('body')[0].style = "margin:0;padding:0;position:absolute;width:100%;height:100%;";
-    document.getElementById('container').style = 'margin:0;padding:0;position:absolute;width:100%;height:100%;';
+    document.getElementsByTagName('body')[0].setAttributeNS(null, 'style', "margin:0;padding:0;position:absolute;width:100%;height:100%;");
+    document.getElementById('container').setAttributeNS(null, 'style', "margin:0;padding:0;position:absolute;width:100%;height:100%;");
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -262,8 +262,8 @@ function init() {
         MouseY = -1;
     }, { passive: false });
 
-    ClientSizeX = document.getElementById('container').clientWidth;
-    ClientSizeY = document.getElementById('container').clientHeight;
+    ClientSizeX = document.getElementById('container').getBoundingClientRect().width;
+    ClientSizeY = document.getElementById('container').getBoundingClientRect().height;
 
     var div = document.getElementById('container');
 
@@ -339,9 +339,9 @@ function init() {
     if (CounterType == 1) {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
-            for (var n of NumberImageD[i]) {
-                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
-                else NumberImage2[i] += n;
+            for (var j = 0; j < NumberImageD[i].length;j++) {
+                if ((typeof NumberImageD[i][j]) == 'number') NumberImage2[i] += ' ' + (NumberImageD[i][j] / 200.0 * countergHeight * 0.8);
+                else NumberImage2[i] += NumberImageD[i][j];
             }
         }
         var posy = 0;
@@ -359,9 +359,9 @@ function init() {
     else {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
-            for (var n of NumberImageD[i]) {
-                if ((typeof n) == 'number') NumberImage2[i] += ' ' + (n / 200.0 * countergHeight * 0.8);
-                else NumberImage2[i] += n;
+            for (var j = 0; j < NumberImageD[i].length; j++) {
+                if ((typeof NumberImageD[i][j]) == 'number') NumberImage2[i] += ' ' + (NumberImageD[i][j] / 200.0 * countergHeight * 0.8);
+                else NumberImage2[i] += NumberImageD[i][j];
             }
         }
         var posx = 0;
@@ -441,9 +441,9 @@ function main() {
         ;
 
     for (var i = 0; i < 10; i++) {
-        for (var n of NumberImageD[i]) {
-            if ((typeof n) == 'number') NumberImage[i] += ' ' + (n * scale / 200.0);
-            else NumberImage[i] += n;
+        for (var j = 0; j < NumberImageD[i].length;j++) {
+            if ((typeof NumberImageD[i][j]) == 'number') NumberImage[i] += ' ' + (NumberImageD[i][j] * scale / 200.0);
+            else NumberImage[i] += NumberImageD[i][j];
         }
     }
 
@@ -535,8 +535,25 @@ function main() {
 
             var gr = document.createElementNS(ns, 'g');
             gr.setAttributeNS(null, 'transform', 'scale(' + scale + ',' + scale + ')translate(-0.5,-0.5)');
-            gr.innerHTML = '<path d="M 0.45,0.33 C 0.5,0.27 0.56,0.2 0.63,0.17 L 0.66,0.2 C 0.6,0.25 0.55,0.28 0.52,0.33 z" fill="#c3845f"/><circle cx="0.5" cy="0.6" r="0.3" fill="#4b4b4b"/><path d="M0.62,0.27L0.63,0.19L0.55,0.18L0.62,0.14L0.58,0.08L0.65,0.10L0.68,0.03L0.71,0.10L0.78,0.08L0.74,0.14L0.80,0.19L0.73,0.20L0.73,0.27L0.68,0.22Z" fill="#ff0000" />';
             Bodies[bodyindex].grap.appendChild(gr);
+
+            //gr.innerHTML = '<path d="M 0.45,0.33 C 0.5,0.27 0.56,0.2 0.63,0.17 L 0.66,0.2 C 0.6,0.25 0.55,0.28 0.52,0.33 z" fill="#c3845f"/><circle cx="0.5" cy="0.6" r="0.3" fill="#4b4b4b"/><path d="M0.62,0.27L0.63,0.19L0.55,0.18L0.62,0.14L0.58,0.08L0.65,0.10L0.68,0.03L0.71,0.10L0.78,0.08L0.74,0.14L0.80,0.19L0.73,0.20L0.73,0.27L0.68,0.22Z" fill="#ff0000" />';
+            var element = document.createElementNS(ns, 'path');
+            element.setAttributeNS(null, 'd', "M 0.45,0.33 C 0.5,0.27 0.56,0.2 0.63,0.17 L 0.66,0.2 C 0.6,0.25 0.55,0.28 0.52,0.33 z");
+            element.setAttributeNS(null, 'fill', "#c3845f");
+            gr.appendChild(element);
+
+            element = document.createElementNS(ns, 'circle');
+            element.setAttributeNS(null, 'cx', "0.5");
+            element.setAttributeNS(null, 'cy', "0.5");
+            element.setAttributeNS(null, 'r', "0.3");
+            element.setAttributeNS(null, 'fill', "#4b4b4b");
+            gr.appendChild(element);
+
+            element = document.createElementNS(ns, 'path');
+            element.setAttributeNS(null, 'd', "M0.62,0.27L0.63,0.19L0.55,0.18L0.62,0.14L0.58,0.08L0.65,0.10L0.68,0.03L0.71,0.10L0.78,0.08L0.74,0.14L0.80,0.19L0.73,0.20L0.73,0.27L0.68,0.22Z");
+            element.setAttributeNS(null, 'fill', "#ff0000");
+            gr.appendChild(element);
             return;
         }
 
@@ -712,7 +729,8 @@ function main() {
         Effect.push(eff);
     }
     function MoveEffect() {
-        for (var eff of Effect) {
+        for (var i = 0; i < Effect.length;i++) {
+            var eff = Effect[i];
             var opa = Number(eff.getAttribute('opacity')) - 0.02;
             eff.setAttributeNS(null, 'opacity', opa);
             eff.setAttributeNS(null, 'y', Number(eff.getAttribute('y')) - 0.02 * scale);
@@ -1204,6 +1222,9 @@ function ClickSettings() {
     <div>\
         <h2>Cookieの使用について</h2>\
         <p>このゲームでは、素因数カウントや、この設定のデータを保存するためにCookieを使用しています。Cookieが有効になっていない場合、これらのデータは保存されません。</p>\
+    </div>\
+    <div>\
+        <p>ブラウザによって、挙動が変わることがあります。変な挙動になる場合は、別のブラウザをお試しください。</p>\
     </div>\
     <div style='background-color: #fff;'><input type='button' value='戻る' onclick='SaveCookie();BackSettings()' style='width:30vh' /></div>\
             ";
