@@ -156,7 +156,7 @@ for (var n of numbers) {
         var cookieArray = cookies.split(';');
         for (var i = 0; i < cookieArray.length; i++) {
             var cookie = cookieArray[i].split('=');
-            result['' + cookie[0]] = cookie[1];
+            result[cookie[0].trim()] = cookie[1];
         }
     }
 
