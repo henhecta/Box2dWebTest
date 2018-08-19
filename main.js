@@ -129,6 +129,16 @@ var numbers = [
     //MX[9007199254740991, 3]
 ];
 var facts = new Object();
+
+var zeroPadding = function (number) {
+    var digit = 4;
+    var numberLength = String(number).length;
+    if (digit > numberLength)
+        return (new Array((digit - numberLength) + 1).join(0)) + number;
+    else
+        return number;
+};
+
 for (var n of numbers) {
     for (var s = n[0], p = 2; s > 1;) {
         if (s % p == 0) {
@@ -146,14 +156,13 @@ for (var n of numbers) {
         var cookieArray = cookies.split(';');
         for (var i = 0; i < cookieArray.length; i++) {
             var cookie = cookieArray[i].split('=');
-            result[Number(cookie[0])] = cookie[1];
+            result[cookie[0].trim()] = cookie[1];
         }
     }
 
     for (var key in facts) {
-        if (result[key]) {
+        if (result['' + key]) {
             facts[key] = Number(result[key]);
-            counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
         }
     }
     if (result['effect'])
@@ -187,15 +196,6 @@ var Color = [
     "#57aaee",
     "#fa9400",
 ];
-
-var zeroPadding = function (number) {
-    var digit = 4;
-    var numberLength = String(number).length;
-    if (digit > numberLength)
-        return (new Array((digit - numberLength) + 1).join(0)) + number;
-    else
-        return number;
-};
 
 var Effect = new Array();
 const CounterSize = 2.9;
@@ -415,6 +415,7 @@ function init() {
 
         counterVal[key] = document.createTextNode('' + zeroPadding(0));
         text.appendChild(counterVal[key]);
+        counterVal[key].nodeValue = '' + zeroPadding(facts[key], 3);
     }
 
     counterHint = document.createElementNS(ns, 'g')
@@ -940,7 +941,7 @@ function main() {
                     counterHint.appendChild(hintBox);
                 }
                 var nowtime = new Date();
-                var PassTime = nowtime.getTime() - HintSetTime.getTime()-300;
+                var PassTime = nowtime.getTime() - HintSetTime.getTime() - 300;
                 hintBox.setAttributeNS(null, 'fill-opacity', Math.min(PassTime / 500 * 0.4, 0.4));
                 hintBox.setAttributeNS(null, 'stroke-opacity', Math.min(PassTime / 500, 1.0));
                 hintBox.setAttributeNS(null, 'transform', "matrix(" + Math.cos(rot) + " " + Math.sin(rot) + " " + -Math.sin(rot) + " " + Math.cos(rot) + " " + (Bodies[i].b2body.GetPosition().x * scale + marginX) + " " + (Bodies[i].b2body.GetPosition().y * scale + marginY) + ")");
