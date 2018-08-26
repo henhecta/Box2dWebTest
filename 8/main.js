@@ -6,6 +6,9 @@ var isTouch = false;
 var MouseX = -1, MouseY = -1;
 
 const DMax = 0.55;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioConte = new AudioContext();
+var seBuffer = null;
 
 //var stats = new Stats();
 //stats.domElement.style.position = 'absolute';
@@ -27,7 +30,7 @@ var countergColor = new Object();
 var counterVal = new Object();
 var marginX, marginY;
 var BodyNum;
-var Setting = { effect: '0', number: '0' };
+var Setting = { effect: '0', number: '0', sound: '1' };
 
 var numbers = [
     [-1, 20],
@@ -139,7 +142,7 @@ var zeroPadding = function (number) {
         return number;
 };
 
-for (var i = 0; i < numbers.length;i++) {
+for (var i = 0; i < numbers.length; i++) {
     for (var s = numbers[i][0], p = 2; s > 1;) {
         if (s % p == 0) {
             s /= p;
@@ -170,6 +173,9 @@ for (var i = 0; i < numbers.length;i++) {
 
     if (result['number'])
         Setting.number = result['number'];
+
+    if (result['sound'])
+        Setting.sound = result['sound'];
 })();
 
 var NumberImageD = [
@@ -196,6 +202,31 @@ var Color = [
     "#57aaee",
     "#fa9400",
 ];
+
+var getAudioBuffer = function (url, fn) {
+    var request = new XMLHttpRequest();
+    request.responseType = 'arraybuffer';
+
+    request.onreadystatechange = function () {
+        if (request.readyState === 4) {
+            if (request.status === 0 || request.status === 200) {
+                context.decodeAudioData(request.response, function (buffer) {
+                    fn(buffer);
+                });
+            }
+        }
+    };
+
+    request.open('GET', url, true);
+    request.send('');
+};
+
+var playSound = function (buffer) {
+    var source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(context.destination);
+    source.start(0);
+};
 
 var Effect = new Array();
 const CounterSize = 2.9;
@@ -235,8 +266,8 @@ function init() {
     document.getElementById('container').addEventListener('touchmove', function (e) {
         e.preventDefault();
         //if (MouseX != -1) {
-            MouseX = e.changedTouches[0].pageX - marginX;
-            MouseY = e.changedTouches[0].pageY - marginY;
+        MouseX = e.changedTouches[0].pageX - marginX;
+        MouseY = e.changedTouches[0].pageY - marginY;
         //}
         return false;
     }, { passive: false });
@@ -339,7 +370,7 @@ function init() {
     if (CounterType == 1) {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < NumberImageD[i].length;j++) {
+            for (var j = 0; j < NumberImageD[i].length; j++) {
                 if ((typeof NumberImageD[i][j]) == 'number') NumberImage2[i] += ' ' + (NumberImageD[i][j] / 200.0 * countergHeight * 0.8);
                 else NumberImage2[i] += NumberImageD[i][j];
             }
@@ -441,7 +472,7 @@ function main() {
         ;
 
     for (var i = 0; i < 10; i++) {
-        for (var j = 0; j < NumberImageD[i].length;j++) {
+        for (var j = 0; j < NumberImageD[i].length; j++) {
             if ((typeof NumberImageD[i][j]) == 'number') NumberImage[i] += ' ' + (NumberImageD[i][j] * scale / 200.0);
             else NumberImage[i] += NumberImageD[i][j];
         }
@@ -729,7 +760,7 @@ function main() {
         Effect.push(eff);
     }
     function MoveEffect() {
-        for (var i = 0; i < Effect.length;i++) {
+        for (var i = 0; i < Effect.length; i++) {
             var eff = Effect[i];
             var opa = Number(eff.getAttribute('opacity')) - 0.02;
             eff.setAttributeNS(null, 'opacity', opa);
@@ -839,18 +870,27 @@ function main() {
                 if (!CheckNerar(Touch.v[Touch.v.length - 1], b))
                     return;
 
+                if (Touch.v.length >= 2 && Touch.v[Touch.v.length - 2] == b) {
+                    Touch.v.pop();
+                    Touch.gcd = Bodies[Touch.v[0]].value;
+                    for (var i = 1; i < Touch.v.length; i++)
+                        if (Bodies[Touch.v[i]].value != -1)
+                            Touch.gcd = gcd(Touch.gcd, Bodies[Touch.v[i]].value);
+                    return;
+                }
+
                 if (Touch.v.indexOf(b) >= 0)
                     return;
 
-                if (Touch.v.length >= 2 && Bodies[b].value == -1) {
+                if (Bodies[b].value == -1) {
                     Touch.v.push(b);
                     return;
                 }
 
-                if (gcd(Touch.gcd, Bodies[b].value) == 1)
+                if (Touch.gcd != -1 && gcd(Touch.gcd, Bodies[b].value) == 1)
                     return;
 
-                Touch.gcd = gcd(Touch.gcd, Bodies[b].value);
+                Touch.gcd = (Touch.gcd == -1) ? Bodies[b].value : gcd(Touch.gcd, Bodies[b].value);
 
                 Touch.v.push(b);
             }
@@ -1052,6 +1092,7 @@ function SaveCookie() {
 
     document.cookie = 'effect' + '=' + Setting.effect + '; expires=' + expire.toUTCString();
     document.cookie = 'number' + '=' + Setting.number + '; expires=' + expire.toUTCString();
+    document.cookie = 'sound' + '=' + Setting.sound + '; expires=' + expire.toUTCString();
 }
 
 var SeNumber = { '-3': '少なすぎ', '-2': 'すごく少ない', '-1': '少ない', '0': 'ふつう', '1': '多い', '2': 'すごく多い', '3': '多すぎ' };
@@ -1191,6 +1232,10 @@ background: #25619e;\
 input[type=range]:focus::-ms-fill-upper {\
 background: #2664a2;\
 }\
+input[type=checkbox] {\
+width: 1.4em;\
+height: 1.4em;\
+}\
 output {\
 margin: 0;\
 font-size: 1.4em;\
@@ -1271,21 +1316,37 @@ height: 2em;\
 </div>\
 <div>\
 <h2>一度に落ちてくる数の多さ</h2>\
-<input type='range' value='"+Setting.number+"' min='-3' max='3' step='1' class='range'\
+<input type='range' value='"+ Setting.number + "' min='-3' max='3' step='1' class='range'\
    oninput='Setting.number=this.value;var str = \"ふつう\"; document.getElementById(\"output1\").value = SeNumber[this.value];'>\
-<output id='output1'>"+SeNumber[Setting.number]+"</output>\
+<output id='output1'>"+ SeNumber[Setting.number] + "</output>\
 <p>動作が重い場合は、これで調節してください。</p>\
 </div>\
 <div>\
 <h2>エフェクト</h2>\
-<input type='range' value='"+Setting.effect+"' min='-2' max='0' step='1' class='range'\
+<input type='range' value='"+ Setting.effect + "' min='-2' max='0' step='1' class='range'\
    oninput='Setting.effect=this.value;var str = \"\"; document.getElementById(\"output2\").value = SeEffect[this.value]'>\
-<output id='output2'>"+SeEffect[Setting.effect]+"</output>\
+<output id='output2'>"+ SeEffect[Setting.effect] + "</output>\
 <p>分解したときに表示されるエフェクトの表示を設定します。<br />動作が重い場合は、これで調節してください。</p>\
+</div>\
+<div>\
+<h2>効果音</h2>\
+<input type='checkbox' id='check3'"+ (Setting.sound=='1' ? ' checked' : '') + ">\
+<output id='output3'>" + (Setting.sound == '1' ? '有効' : '無効') + "</output>\
+<script></script>\
 </div>\
 <div style='background-color: #fff;'><input type='button' value='戻る' class='button' onclick='BackSettings()' /></div>\
 </div>\
-            ";
+";
+    
+    document.getElementById('check3').addEventListener('click', function () {
+        if (this.checked) {
+            document.getElementById('output3').innerHTML = '有効';
+            Setting.sound = '1';
+        } else {
+            document.getElementById('output3').innerHTML = '無効';
+            Setting.sound = '0';
+        }
+    }, false);
 }
 function BackSettings() {
     var div = document.getElementById('container');
@@ -1376,3 +1437,13 @@ box-shadow: none;\
             ';
 }
 BackSettings();
+
+window.onload = function () {
+    getAudioBuffer('pn.wav', function (buffer1) {
+        seBuffer = buffer1;
+    });
+    var btn = document.getElementById('btn');
+    btn.onclick = function () {
+        playSound(seBuffer);
+    };
+};
