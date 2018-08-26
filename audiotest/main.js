@@ -1,15 +1,14 @@
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var context = new AudioContext();
+var buffer2 = null;
 
-var getAudioBuffer = function(url, fn) {  
+var getAudioBuffer = function(url) {  
   var req = new XMLHttpRequest();
   req.responseType = 'arraybuffer';
   req.onreadystatechange = function() {
     if (req.readyState === 4) {
       if (req.status === 0 || req.status === 200) {
-        context.decodeAudioData(req.response, function(buffer) {
-          fn(buffer);
-        });
+        context.decodeAudioData(req.response).then(function(b){buffer2=b;},function(){});
       }
     }
   };
@@ -25,10 +24,10 @@ var playSound = function(buffer) {
 };
 
 window.onload = function() {
-  getAudioBuffer('jump12.wav', function(buffer) {
+  getAudioBuffer('p.wav');
+
     var btn = document.getElementById('btn');
     btn.onclick = function() {
-      playSound(buffer);
+      playSound(buffer2);
     };
-  });
 };
