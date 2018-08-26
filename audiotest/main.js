@@ -1,19 +1,23 @@
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var context = new AudioContext();
-var buffer2 = null;
+var seBuffer = null;
 
-var getAudioBuffer = function(url) {  
-  var req = new XMLHttpRequest();
-  req.responseType = 'arraybuffer';
-  req.onreadystatechange = function() {
-    if (req.readyState === 4) {
-      if (req.status === 0 || req.status === 200) {
-        context.decodeAudioData(req.response).then(function(b){buffer2=b;},function(){});
+var getAudioBuffer = function(url, fn) {  
+  var request = new XMLHttpRequest();
+  request.responseType = 'arraybuffer';
+
+  request.onreadystatechange = function() {
+    if (request.readyState === 4) {
+      if (request.status === 0 || request.status === 200) {
+        context.decodeAudioData(request.response, function(buffer) {
+          fn(buffer);
+        });
       }
     }
   };
-  req.open('GET', url, true);
-  req.send('');
+
+  request.open('GET', url, true);
+  request.send('');
 };
 
 var playSound = function(buffer) {
@@ -24,10 +28,11 @@ var playSound = function(buffer) {
 };
 
 window.onload = function() {
-  getAudioBuffer('pn.wav');
-
-    var btn = document.getElementById('btn');
-    btn.onclick = function() {
-      playSound(buffer2);
-    };
+  getAudioBuffer('pn.wav', function(buffer1) {
+    seBuffer = buffer1;
+  });
+  var btn = document.getElementById('btn');
+  btn.onclick = function() {
+    playSound(seBuffer);
+  };
 };
