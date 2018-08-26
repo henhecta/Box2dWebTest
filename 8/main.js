@@ -225,8 +225,7 @@ var playSound = function (buffer) {
     var source = audioConte.createBufferSource();
     source.buffer = buffer;
     source.connect(audioConte.destination);
-    if (lastTime + 0.08 >= audioConte.currentTime)
-        lastTime = lastTime + 0.08;
+    lastTime = max(lastTime + 0.08, audioConte.currentTime);
     source.start(lastTime);
 };
 
@@ -1334,14 +1333,14 @@ height: 2em;\
 </div>\
 <div>\
 <h2>効果音</h2>\
-<input type='checkbox' id='check3'"+ (Setting.sound=='1' ? ' checked' : '') + ">\
+<input type='checkbox' id='check3'"+ (Setting.sound == '1' ? ' checked' : '') + ">\
 <output id='output3'>" + (Setting.sound == '1' ? '有効' : '無効') + "</output>\
 <script></script>\
 </div>\
 <div style='background-color: #fff;'><input type='button' value='戻る' class='button' onclick='BackSettings()' /></div>\
 </div>\
 ";
-    
+
     document.getElementById('check3').addEventListener('click', function () {
         if (this.checked) {
             document.getElementById('output3').innerHTML = '有効';
