@@ -210,7 +210,7 @@ var getAudioBuffer = function (url, fn) {
     request.onreadystatechange = function () {
         if (request.readyState === 4) {
             if (request.status === 0 || request.status === 200) {
-                context.decodeAudioData(request.response, function (buffer) {
+                audioConte.decodeAudioData(request.response, function (buffer) {
                     fn(buffer);
                 });
             }
