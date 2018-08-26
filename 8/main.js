@@ -222,11 +222,11 @@ var getAudioBuffer = function (url, fn) {
 };
 var lastTime = 0;
 var playSound = function (buffer) {
-    if (lastTime + 0.1 > audioConte.currentTime) return;
+    //if (lastTime + 0.1 > audioConte.currentTime) return;
     var source = audioConte.createBufferSource();
     source.buffer = buffer;
     source.connect(audioConte.destination);
-    lastTime = audioConte.currentTime;
+    //lastTime = audioConte.currentTime;
     source.start(0);
 };
 
