@@ -174,8 +174,8 @@ for (var i = 0; i < numbers.length; i++) {
     if (result['number'])
         Setting.number = result['number'];
 
-    if (result['sound'])
-        Setting.sound = result['sound'];
+    //if (result['sound'])
+    //    Setting.sound = result['sound'];
 })();
 
 var NumberImageD = [
@@ -1338,7 +1338,7 @@ height: 2em;\
 <h2>効果音</h2>\
 <input type='checkbox' id='check3'"+ (Setting.sound == '1' ? ' checked' : '') + ">\
 <output id='output3'>" + (Setting.sound == '1' ? '有効' : '無効') + "</output>\
-<script></script>\
+<p>チェックを入れると音が鳴ります。<br />この設定は保存されません。</p>\
 </div>\
 <div style='background-color: #fff;'><input type='button' value='戻る' class='button' onclick='BackSettings()' /></div>\
 </div>\
