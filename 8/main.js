@@ -851,9 +851,9 @@ function main() {
                     impulse.x = impulse.x / Math.pow(dis, 3) * 300.0;
                     impulse.y = impulse.y / Math.pow(dis, 3) * 300.0;
                     Bodies[j].b2body.ApplyImpulse(impulse, pos);
-                    playSound2(seBombBuffer);
                 }
                 NewBody(Bomb[i].bodyIndex);
+                playSound2(seBombBuffer);
             }
         }
         while (Bomb.length > 0 && Bomb[0].time >= 80)
