@@ -220,12 +220,14 @@ var getAudioBuffer = function (url, fn) {
     request.open('GET', url, true);
     request.send('');
 };
-
+var lastTime = 0;
 var playSound = function (buffer) {
-    var source = context.createBufferSource();
+    var source = audioConte.createBufferSource();
     source.buffer = buffer;
-    source.connect(context.destination);
-    source.start(0);
+    source.connect(audioConte.destination);
+    if (lastTime + 0.08 >= audioConte.currentTime)
+        lastTime = lastTime + 0.08;
+    source.start(lastTime);
 };
 
 var Effect = new Array();
@@ -806,6 +808,8 @@ function main() {
             NewBody(bodyindex);
         else
             UpdateBodyValue(bodyindex, newVal);
+
+        playSound(seBuffer);
     }
 
     function BombProg() {
@@ -1442,8 +1446,4 @@ window.onload = function () {
     getAudioBuffer('pn.wav', function (buffer1) {
         seBuffer = buffer1;
     });
-    var btn = document.getElementById('btn');
-    btn.onclick = function () {
-        playSound(seBuffer);
-    };
 };
