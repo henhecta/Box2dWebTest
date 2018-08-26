@@ -24,7 +24,7 @@ var playSound = function(buffer) {
 };
 
 window.onload = function() {
-  getAudioBuffer('p.wav');
+  getAudioBuffer('pn.wav');
 
     var btn = document.getElementById('btn');
     btn.onclick = function() {
