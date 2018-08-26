@@ -227,7 +227,7 @@ var playSound = function (buffer) {
     var source = audioConte.createBufferSource();
     source.buffer = buffer;
     source.connect(audioConte.destination);
-    lastTime = max(lastTime + 0.03, audioCtx.currentTime);
+    lastTime = max(lastTime + 0.03, audioConte.currentTime);
     source.start(lastTime);
 };
 
