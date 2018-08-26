@@ -30,7 +30,7 @@ var countergColor = new Object();
 var counterVal = new Object();
 var marginX, marginY;
 var BodyNum;
-var Setting = { effect: '0', number: '0', sound: '1' };
+var Setting = { effect: '0', number: '0', sound: '0' };
 
 var numbers = [
     [-1, 20],
@@ -222,6 +222,7 @@ var getAudioBuffer = function (url, fn) {
 };
 var lastTime = new Date("1990/1/1");
 var playSound = function (buffer) {
+    if (Setting.sound == '0') return;
     var nowTime = new Date();
     if (lastTime.getTime() + 100 > nowTime.getTime()) return;
     var source = audioConte.createBufferSource();
@@ -898,7 +899,6 @@ function main() {
                 Touch.gcd = (Touch.gcd == -1) ? Bodies[b].value : gcd(Touch.gcd, Bodies[b].value);
 
                 Touch.v.push(b);
-                playSound(seBuffer);
             }
         }
         else {
@@ -1348,6 +1348,7 @@ height: 2em;\
         if (this.checked) {
             document.getElementById('output3').innerHTML = '有効';
             Setting.sound = '1';
+            playSound(seBuffer);
         } else {
             document.getElementById('output3').innerHTML = '無効';
             Setting.sound = '0';
@@ -1448,8 +1449,4 @@ window.onload = function () {
     getAudioBuffer('pn.wav', function (buffer1) {
         seBuffer = buffer1;
     });
-    var btn = document.getElementById('startButton');
-    btn.onclick = function () {
-        playSound(seBuffer);
-    };
 };
