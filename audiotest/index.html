@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<h1>Buffer source</h1>
+<button onclick="Play()">Play</button><br/>
+<script type="text/javascript">
+ 
+window.AudioContext = window.webkitAudioContext||window.AudioContext;
+var audioctx = new AudioContext();
+ 
+var buffer = null;
+LoadSample(audioctx, "./click.wav");
+ 
+function Play() {
+    var src = audioctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(audioctx.destination);
+    src.start();
+}
+ 
+function LoadSample(ctx, url) {
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "arraybuffer";
+    req.onload = function() {
+        if(req.response) {
+            ctx.decodeAudioData(req.response).then(function(b){buffer=b;},function(){});
+        }
+    }
+    req.send();
+}
+ 
+</script>
+ 
+</body>
+</html>
+テストページ：BufferSource
