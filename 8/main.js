@@ -220,16 +220,15 @@ var getAudioBuffer = function (url, fn) {
     request.open('GET', url, true);
     request.send('');
 };
-var lastTime = new Date("1990/1/1");
+var lastTime = 0;
 var playSound = function (buffer) {
     if (Setting.sound == '0') return;
-    var nowTime = new Date();
-    if (lastTime.getTime() + 100 > nowTime.getTime()) return;
+    //if (lastTime.getTime() + 100 > nowTime.getTime()) return;
     var source = audioConte.createBufferSource();
     source.buffer = buffer;
     source.connect(audioConte.destination);
-    lastTime = nowTime;
-    source.start(0);
+    lastTime = max(lastTime + 0.03, audioCtx.currentTime);
+    source.start(lastTime);
 };
 
 var Effect = new Array();
