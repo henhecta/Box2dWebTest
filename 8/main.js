@@ -897,6 +897,7 @@ function main() {
                 Touch.gcd = (Touch.gcd == -1) ? Bodies[b].value : gcd(Touch.gcd, Bodies[b].value);
 
                 Touch.v.push(b);
+                playSound(seBuffer);
             }
         }
         else {
