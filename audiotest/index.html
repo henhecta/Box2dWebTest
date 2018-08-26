@@ -2,15 +2,13 @@
 <html>
 <head></head>
 <body>
-<h1>Buffer source</h1>
 <button onclick="Play()">Play</button><br/>
 <script type="text/javascript">
- 
 window.AudioContext = window.webkitAudioContext||window.AudioContext;
 var audioctx = new AudioContext();
  
 var buffer = null;
-LoadSample(audioctx, "./click.wav");
+LoadSample(audioctx, "./cursor7.mp3");
  
 function Play() {
     var src = audioctx.createBufferSource();
@@ -35,4 +33,3 @@ function LoadSample(ctx, url) {
  
 </body>
 </html>
-テストページ：BufferSource
