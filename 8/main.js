@@ -1437,7 +1437,7 @@ box-shadow: none;\
 }\
 }\
     </style>\
-    <div style="text-align:center;"><input type="button" value="すたーと" style="" onclick="var div = document.getElementById(\'container\');while(div.firstChild)div.removeChild(div.firstChild);init();main();" /></div>\
+    <div style="text-align:center;"><input id="startButton" type="button" value="すたーと" style="" onclick="var div = document.getElementById(\'container\');while(div.firstChild)div.removeChild(div.firstChild);init();main();" /></div>\
     <div style="text-align:center;"><input type="button" value="設定" style=""onclick="ClickSettings()" /></div>\
             ';
 }
@@ -1447,4 +1447,8 @@ window.onload = function () {
     getAudioBuffer('pn.wav', function (buffer1) {
         seBuffer = buffer1;
     });
+    var btn = document.getElementById('startButton');
+    btn.onclick = function () {
+        playSound(seBuffer);
+    };
 };
