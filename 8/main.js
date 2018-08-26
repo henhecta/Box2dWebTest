@@ -9,6 +9,7 @@ const DMax = 0.55;
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioConte = new AudioContext();
 var seBuffer = null;
+var seBombBuffer = null;
 
 //var stats = new Stats();
 //stats.domElement.style.position = 'absolute';
@@ -229,6 +230,13 @@ var playSound = function (buffer) {
     source.connect(audioConte.destination);
     lastTime = Math.max(lastTime + 0.03, audioConte.currentTime);
     source.start(lastTime);
+};
+var playSound2 = function (buffer) {
+    if (Setting.sound == '0') return;
+    var source = audioConte.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioConte.destination);
+    source.start(0);
 };
 
 var Effect = new Array();
@@ -782,7 +790,7 @@ function main() {
 
         Bomb.push({ bodyIndex: bodyindex, time: 0 });
     }
-    function EraseBody(bodyindex, div, showEffect) {
+    function EraseBody(bodyindex, div, showEffect, sound) {
         if (Bodies[bodyindex].value == -1) {
             SetBomb(bodyindex);
             return;
@@ -810,7 +818,8 @@ function main() {
         else
             UpdateBodyValue(bodyindex, newVal);
 
-        playSound(seBuffer);
+        if (sound == 1)
+            playSound(seBuffer);
     }
 
     function BombProg() {
@@ -830,7 +839,7 @@ function main() {
                     var pos = Bodies[j].b2body.GetPosition();
                     var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
                     if (dis < 4.2) {
-                        EraseBody(j, Bodies[j].value, Setting.effect == '0');
+                        EraseBody(j, Bodies[j].value, Setting.effect == '0', 2);
                         continue;
                     }
                     if (dis < 10.0 && Bodies[j].value == -1)
@@ -842,6 +851,7 @@ function main() {
                     impulse.x = impulse.x / Math.pow(dis, 3) * 300.0;
                     impulse.y = impulse.y / Math.pow(dis, 3) * 300.0;
                     Bodies[j].b2body.ApplyImpulse(impulse, pos);
+                    playSound2(seBombBuffer);
                 }
                 NewBody(Bomb[i].bodyIndex);
             }
@@ -853,7 +863,7 @@ function main() {
     function EraseTouch() {
         if (Touch.v.length >= 2)
             for (var i = 0; i < Touch.v.length; i++)
-                EraseBody(Touch.v[i], Touch.gcd, Setting.effect != '-2');
+                EraseBody(Touch.v[i], Touch.gcd, Setting.effect != '-2', 1);
 
         Touch.v = [];
         Touch.gcd = 0;
@@ -1447,5 +1457,8 @@ BackSettings();
 window.onload = function () {
     getAudioBuffer('jump12.wav', function (buffer1) {
         seBuffer = buffer1;
+    });
+    getAudioBuffer('bomb.wav', function (buffer2) {
+        seBombBuffer = buffer2;
     });
 };
