@@ -1239,8 +1239,8 @@ input[type=range]:focus::-ms-fill-upper {\
 background: #2664a2;\
 }\
 input[type=checkbox] {\
-width: 1.4em;\
-height: 1.4em;\
+width: 2em;\
+height: 2em;\
 }\
 output {\
 margin: 0;\
@@ -1446,7 +1446,7 @@ box-shadow: none;\
 BackSettings();
 
 window.onload = function () {
-    getAudioBuffer('pn.wav', function (buffer1) {
+    getAudioBuffer('jump12.wav', function (buffer1) {
         seBuffer = buffer1;
     });
 };
