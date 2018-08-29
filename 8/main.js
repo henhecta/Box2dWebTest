@@ -4,8 +4,13 @@ var WorldSizeX = 10, WorldSizeY = 10;
 
 var isTouch = false;
 var MouseX = -1, MouseY = -1;
+var TouchStartTime=0;
+var PrevTapTime=0;
+var TapTime=0;
+var TapPos={x:-1,y:-1};
+var TapStartPos={x:-1,y:-1};
 
-const DMax = 0.55;
+const DMax = 0.45;
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioConte = new AudioContext();
 var seBuffer = null;
@@ -264,6 +269,8 @@ function init() {
         e.preventDefault();
         MouseX = e.changedTouches[0].pageX - marginX;
         MouseY = e.changedTouches[0].pageY - marginY;
+        TouchStartTime=new Date();
+        TapStartPos={x:MouseX,y:MouseY};
         return false;
     }, { passive: false });
 
@@ -271,6 +278,8 @@ function init() {
         e.preventDefault();
         MouseX = e.clientX - marginX;
         MouseY = e.clientY - marginY;
+        TouchStartTime=new Date();
+        TapStartPos={x:MouseX,y:MouseY};
         return false;
     }, { passive: false });
 
@@ -294,12 +303,24 @@ function init() {
 
     document.getElementById('container').addEventListener('touchend', function (e) {
         e.preventDefault();
+        var now=new Date();
+        if(now.getTime()-TouchStartTime.getTime()<200&&-10<=(TapStartPos.x-MouseX)&&(TapStartPos.x-MouseX)<=10 && -10<=(TapStartPos.y-MouseY)&&(TapStartPos.y-MouseY)<=10){
+            PrevTapTime=TapTime;
+            TapTime=now;
+            TapPos={x:MouseX,y:MouseY};
+        }
         MouseX = -1;
         MouseY = -1;
     }, { passive: false });
 
     document.getElementById('container').addEventListener('mouseup', function (e) {
         e.preventDefault();
+        var now=new Date();
+        if(now.getTime()-TouchStartTime.getTime()<200&&-10<=(TapStartPos.x-MouseX)&&(TapStartPos.x-MouseX)<=10 && -10<=(TapStartPos.y-MouseY)&&(TapStartPos.y-MouseY)<=10){
+            PrevTapTime=TapTime;
+            TapTime=now;
+            TapPos={x:MouseX,y:MouseY};
+        }
         MouseX = -1;
         MouseY = -1;
     }, { passive: false });
@@ -587,7 +608,7 @@ function main() {
 
             element = document.createElementNS(ns, 'circle');
             element.setAttributeNS(null, 'cx', "0.5");
-            element.setAttributeNS(null, 'cy', "0.5");
+            element.setAttributeNS(null, 'cy', "0.6");
             element.setAttributeNS(null, 'r', "0.3");
             element.setAttributeNS(null, 'fill', "#4b4b4b");
             gr.appendChild(element);
@@ -869,6 +890,26 @@ function main() {
         Touch.gcd = 0;
     }
 
+    function TapProg(){
+        if(TapTime!=0&&PrevTapTime!=0){
+            if(TapTime.getTime()-PrevTapTime.getTime()<400){
+                var Bpos = {x:TapPos.x/scale,y:TapPos.y/scale};
+                for (var j = 0; j < BodyNum; j++) {
+                    var pos = Bodies[j].b2body.GetPosition();
+                    var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
+
+                    var impulse = new b2Vec2;
+                    impulse.x = pos.x - Bpos.x;
+                    impulse.y = pos.y - Bpos.y;
+                    impulse.x = impulse.x / Math.pow(dis+1, 4.5) * 300.0;
+                    impulse.y = impulse.y / Math.pow(dis+1, 4.5) * 300.0;
+                    Bodies[j].b2body.ApplyImpulse(impulse, pos);
+                }
+            }
+            PrevTapTime=0;
+        }
+    }
+
     function InputOpe() {
         if (MouseX != -1) {
             isTouch = true;
@@ -1024,6 +1065,7 @@ function main() {
 
     function update() {
         InputOpe();
+        TapProg();
         BombProg();
         world.Step(1 / 60, 5, 5);
         //world.ClearForces();
