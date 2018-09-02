@@ -4,8 +4,17 @@ var WorldSizeX = 10, WorldSizeY = 10;
 
 var isTouch = false;
 var MouseX = -1, MouseY = -1;
+var TouchStartTime = 0;
+var PrevTapTime = 0;
+var TapTime = 0;
+var TapPos = { x: -1, y: -1 };
+var TapStartPos = { x: -1, y: -1 };
 
-const DMax = 0.65;
+const DMax = 0.45;
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioConte = new AudioContext();
+var seBuffer = null;
+var seBombBuffer = null;
 
 //var stats = new Stats();
 //stats.domElement.style.position = 'absolute';
@@ -27,7 +36,7 @@ var countergColor = new Object();
 var counterVal = new Object();
 var marginX, marginY;
 var BodyNum;
-var Setting = { effect: '0', number: '0' };
+var Setting = { effect: '0', number: '0', sound: '0' };
 
 var numbers = [
     [-1, 20],
@@ -79,8 +88,44 @@ var numbers = [
     [48, 30],
     [49, 30],
     [50, 30],
+    [51, 5],
+    [52, 5],
+    [55, 5],
+    [56, 5],
+    [58, 5],
+    [60, 5],
+    [62, 5],
+    [63, 5],
+    [64, 5],
+    [65, 5],
+    [66, 5],
+    [68, 5],
+    [69, 5],
+    [70, 5],
+    [72, 5],
+    [74, 5],
+    [75, 5],
+    [76, 5],
+    [77, 5],
+    [78, 5],
+    [80, 5],
+    [81, 5],
+    [82, 5],
+    [84, 5],
+    [85, 5],
+    [86, 5],
+    [88, 5],
+    [90, 5],
+    [92, 5],
+    [93, 5],
+    [95, 5],
+    [96, 5],
+    [98, 5],
+    [99, 5],
+    [100, 5],
     [111, 3],
     [221, 3],
+    [289, 3],
     [323, 3],
     [361, 3],
     [527, 3],
@@ -100,10 +145,12 @@ var numbers = [
     [899, 3],
     [943, 3],
     [961, 3],
+    [1000, 3],
     [1073, 3],
     [1147, 3],
     [1189, 3],
     [1271, 3],
+    [1331, 3],
     [1369, 3],
     [1517, 3],
     [1591, 3],
@@ -115,18 +162,23 @@ var numbers = [
     [7429, 3],
     [9367, 3],
     [9503, 3],
+    [14641, 3],
+    [15625, 3],
     [28561, 3],
     [46139, 3],
+    [59049, 3],
     [65231, 3],
+    [65536, 3],
     [79507, 3],
     [111111, 4],
     [130321, 2],
     [161051, 2],
     [371293, 2],
     [707281, 2],
+    [1000000, 2],
     [282475249, 3],
     [6541380665835015, 3]
-    //MX[9007199254740991, 3]
+    //max[9007199254740991, 3]
 ];
 var facts = new Object();
 
@@ -139,7 +191,7 @@ var zeroPadding = function (number) {
         return number;
 };
 
-for (var i = 0; i < numbers.length;i++) {
+for (var i = 0; i < numbers.length; i++) {
     for (var s = numbers[i][0], p = 2; s > 1;) {
         if (s % p == 0) {
             s /= p;
@@ -170,6 +222,9 @@ for (var i = 0; i < numbers.length;i++) {
 
     if (result['number'])
         Setting.number = result['number'];
+
+    //if (result['sound'])
+    //    Setting.sound = result['sound'];
 })();
 
 var NumberImageD = [
@@ -197,6 +252,41 @@ var Color = [
     "#fa9400",
 ];
 
+var getAudioBuffer = function (url, fn) {
+    var request = new XMLHttpRequest();
+    request.responseType = 'arraybuffer';
+
+    request.onreadystatechange = function () {
+        if (request.readyState === 4) {
+            if (request.status === 0 || request.status === 200) {
+                audioConte.decodeAudioData(request.response, function (buffer) {
+                    fn(buffer);
+                });
+            }
+        }
+    };
+
+    request.open('GET', url, true);
+    request.send('');
+};
+var lastTime = 0;
+var playSound = function (buffer) {
+    if (Setting.sound == '0') return;
+    //if (lastTime.getTime() + 100 > nowTime.getTime()) return;
+    var source = audioConte.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioConte.destination);
+    lastTime = Math.max(lastTime + 0.03, audioConte.currentTime);
+    source.start(lastTime);
+};
+var playSound2 = function (buffer) {
+    if (Setting.sound == '0') return;
+    var source = audioConte.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioConte.destination);
+    source.start(0);
+};
+
 var Effect = new Array();
 const CounterSize = 2.9;
 function resetCount() {
@@ -222,6 +312,8 @@ function init() {
         e.preventDefault();
         MouseX = e.changedTouches[0].pageX - marginX;
         MouseY = e.changedTouches[0].pageY - marginY;
+        TouchStartTime = new Date();
+        TapStartPos = { x: MouseX, y: MouseY };
         return false;
     }, { passive: false });
 
@@ -229,15 +321,17 @@ function init() {
         e.preventDefault();
         MouseX = e.clientX - marginX;
         MouseY = e.clientY - marginY;
+        TouchStartTime = new Date();
+        TapStartPos = { x: MouseX, y: MouseY };
         return false;
     }, { passive: false });
 
     document.getElementById('container').addEventListener('touchmove', function (e) {
         e.preventDefault();
-        if (MouseX != -1) {
-            MouseX = e.changedTouches[0].pageX - marginX;
-            MouseY = e.changedTouches[0].pageY - marginY;
-        }
+        //if (MouseX != -1) {
+        MouseX = e.changedTouches[0].pageX - marginX;
+        MouseY = e.changedTouches[0].pageY - marginY;
+        //}
         return false;
     }, { passive: false });
 
@@ -252,12 +346,24 @@ function init() {
 
     document.getElementById('container').addEventListener('touchend', function (e) {
         e.preventDefault();
+        var now = new Date();
+        if (now.getTime() - TouchStartTime.getTime() < 200 && -10 <= (TapStartPos.x - MouseX) && (TapStartPos.x - MouseX) <= 10 && -10 <= (TapStartPos.y - MouseY) && (TapStartPos.y - MouseY) <= 10) {
+            PrevTapTime = TapTime;
+            TapTime = now;
+            TapPos = { x: MouseX, y: MouseY };
+        }
         MouseX = -1;
         MouseY = -1;
     }, { passive: false });
 
     document.getElementById('container').addEventListener('mouseup', function (e) {
         e.preventDefault();
+        var now = new Date();
+        if (now.getTime() - TouchStartTime.getTime() < 200 && -10 <= (TapStartPos.x - MouseX) && (TapStartPos.x - MouseX) <= 10 && -10 <= (TapStartPos.y - MouseY) && (TapStartPos.y - MouseY) <= 10) {
+            PrevTapTime = TapTime;
+            TapTime = now;
+            TapPos = { x: MouseX, y: MouseY };
+        }
         MouseX = -1;
         MouseY = -1;
     }, { passive: false });
@@ -339,7 +445,7 @@ function init() {
     if (CounterType == 1) {
         var NumberImage2 = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
         for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < NumberImageD[i].length;j++) {
+            for (var j = 0; j < NumberImageD[i].length; j++) {
                 if ((typeof NumberImageD[i][j]) == 'number') NumberImage2[i] += ' ' + (NumberImageD[i][j] / 200.0 * countergHeight * 0.8);
                 else NumberImage2[i] += NumberImageD[i][j];
             }
@@ -441,7 +547,7 @@ function main() {
         ;
 
     for (var i = 0; i < 10; i++) {
-        for (var j = 0; j < NumberImageD[i].length;j++) {
+        for (var j = 0; j < NumberImageD[i].length; j++) {
             if ((typeof NumberImageD[i][j]) == 'number') NumberImage[i] += ' ' + (NumberImageD[i][j] * scale / 200.0);
             else NumberImage[i] += NumberImageD[i][j];
         }
@@ -487,6 +593,17 @@ function main() {
 
     function GetRandNumber() {
         var sum = 0;
+
+        if (Math.random() * 50 < 1.0) {
+            var m = 1;
+            var n = Math.floor(Math.random() * 3) + 2;
+            for (var i = 0; i < n; i++) {
+                var l = Number(Object.keys(facts)[Math.floor(Math.random() * Object.keys(facts).length)]);
+                if (l > 1) m *= l;
+            }
+            return m;
+        }
+
         for (var i = 0; i < numbers.length; i++)
             sum += numbers[i][1];
 
@@ -545,7 +662,7 @@ function main() {
 
             element = document.createElementNS(ns, 'circle');
             element.setAttributeNS(null, 'cx', "0.5");
-            element.setAttributeNS(null, 'cy', "0.5");
+            element.setAttributeNS(null, 'cy', "0.6");
             element.setAttributeNS(null, 'r', "0.3");
             element.setAttributeNS(null, 'fill', "#4b4b4b");
             gr.appendChild(element);
@@ -729,7 +846,7 @@ function main() {
         Effect.push(eff);
     }
     function MoveEffect() {
-        for (var i = 0; i < Effect.length;i++) {
+        for (var i = 0; i < Effect.length; i++) {
             var eff = Effect[i];
             var opa = Number(eff.getAttribute('opacity')) - 0.02;
             eff.setAttributeNS(null, 'opacity', opa);
@@ -748,7 +865,7 @@ function main() {
 
         Bomb.push({ bodyIndex: bodyindex, time: 0 });
     }
-    function EraseBody(bodyindex, div, showEffect) {
+    function EraseBody(bodyindex, div, showEffect, sound) {
         if (Bodies[bodyindex].value == -1) {
             SetBomb(bodyindex);
             return;
@@ -775,6 +892,9 @@ function main() {
             NewBody(bodyindex);
         else
             UpdateBodyValue(bodyindex, newVal);
+
+        if (sound == 1)
+            playSound(seBuffer);
     }
 
     function BombProg() {
@@ -794,7 +914,7 @@ function main() {
                     var pos = Bodies[j].b2body.GetPosition();
                     var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
                     if (dis < 4.2) {
-                        EraseBody(j, Bodies[j].value, Setting.effect == '0');
+                        EraseBody(j, Bodies[j].value, Setting.effect == '0', 2);
                         continue;
                     }
                     if (dis < 10.0 && Bodies[j].value == -1)
@@ -808,6 +928,7 @@ function main() {
                     Bodies[j].b2body.ApplyImpulse(impulse, pos);
                 }
                 NewBody(Bomb[i].bodyIndex);
+                playSound2(seBombBuffer);
             }
         }
         while (Bomb.length > 0 && Bomb[0].time >= 80)
@@ -817,10 +938,30 @@ function main() {
     function EraseTouch() {
         if (Touch.v.length >= 2)
             for (var i = 0; i < Touch.v.length; i++)
-                EraseBody(Touch.v[i], Touch.gcd, Setting.effect != '-2');
+                EraseBody(Touch.v[i], Touch.gcd, Setting.effect != '-2', 1);
 
         Touch.v = [];
         Touch.gcd = 0;
+    }
+
+    function TapProg() {
+        if (TapTime != 0 && PrevTapTime != 0) {
+            if (TapTime.getTime() - PrevTapTime.getTime() < 400) {
+                var Bpos = { x: TapPos.x / scale, y: TapPos.y / scale };
+                for (var j = 0; j < BodyNum; j++) {
+                    var pos = Bodies[j].b2body.GetPosition();
+                    var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
+
+                    var impulse = new b2Vec2;
+                    impulse.x = pos.x - Bpos.x;
+                    impulse.y = pos.y - Bpos.y;
+                    impulse.x = impulse.x / Math.pow(dis + 1, 4.5) * 300.0;
+                    impulse.y = impulse.y / Math.pow(dis + 1, 4.5) * 300.0;
+                    Bodies[j].b2body.ApplyImpulse(impulse, pos);
+                }
+            }
+            PrevTapTime = 0;
+        }
     }
 
     function InputOpe() {
@@ -839,18 +980,27 @@ function main() {
                 if (!CheckNerar(Touch.v[Touch.v.length - 1], b))
                     return;
 
+                if (Touch.v.length >= 2 && Touch.v[Touch.v.length - 2] == b) {
+                    Touch.v.pop();
+                    Touch.gcd = Bodies[Touch.v[0]].value;
+                    for (var i = 1; i < Touch.v.length; i++)
+                        if (Bodies[Touch.v[i]].value != -1)
+                            Touch.gcd = gcd(Touch.gcd, Bodies[Touch.v[i]].value);
+                    return;
+                }
+
                 if (Touch.v.indexOf(b) >= 0)
                     return;
 
-                if (Touch.v.length >= 2 && Bodies[b].value == -1) {
+                if (Bodies[b].value == -1) {
                     Touch.v.push(b);
                     return;
                 }
 
-                if (gcd(Touch.gcd, Bodies[b].value) == 1)
+                if (Touch.gcd != -1 && gcd(Touch.gcd, Bodies[b].value) == 1)
                     return;
 
-                Touch.gcd = gcd(Touch.gcd, Bodies[b].value);
+                Touch.gcd = (Touch.gcd == -1) ? Bodies[b].value : gcd(Touch.gcd, Bodies[b].value);
 
                 Touch.v.push(b);
             }
@@ -969,6 +1119,7 @@ function main() {
 
     function update() {
         InputOpe();
+        TapProg();
         BombProg();
         world.Step(1 / 60, 5, 5);
         //world.ClearForces();
@@ -1052,6 +1203,7 @@ function SaveCookie() {
 
     document.cookie = 'effect' + '=' + Setting.effect + '; expires=' + expire.toUTCString();
     document.cookie = 'number' + '=' + Setting.number + '; expires=' + expire.toUTCString();
+    document.cookie = 'sound' + '=' + Setting.sound + '; expires=' + expire.toUTCString();
 }
 
 var SeNumber = { '-3': '少なすぎ', '-2': 'すごく少ない', '-1': '少ない', '0': 'ふつう', '1': '多い', '2': 'すごく多い', '3': '多すぎ' };
@@ -1062,172 +1214,271 @@ function ClickSettings() {
         div.removeChild(div.firstChild);
 
     div.innerHTML = "\
-    <style>\
-        div div {\
-            text-align: center;\
-            max-width: 70vh;\
-            width: 90vw;\
-            margin: 5vh auto;\
-            padding: 1vh;\
-            background-color: #ddd;\
-        }\
-\
-        input[type=button] {\
-            margin: 0 auto;\
-            padding: 1vh;\
-            display: inline-block;\
-            text-align: center;\
-            text-decoration: none;\
-            position: relative;\
-            background-color: #4d95d1;\
-            border-radius: 4px;\
-            color: #fff;\
-            box-shadow: 0 3px 0 #3070a5;\
-            text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
-            vertical-align: middle;\
-            border-style: none;\
-            font-size: 4vh;\
-            font-weight: 600;\
-        }\
-\
-            input[type=button]:hover {\
-                background-color: #57aaee;\
-                box-shadow: 0 3px 0 #3070a5;\
-            }\
-\
-            input[type=button]:active {\
-                top: 3px;\
-                box-shadow: none;\
-            }\
-\
-        h2 {\
-            font-size: 3vh;\
-        }\
-\
-        p {\
-            margin: 2vh;\
-            font-size: 2vh;\
-        }\
-\
-        input[type=range] {\
-            margin: 0 auto;\
-            -webkit-appearance: none;\
-            width: 100%;\
-            height: 8vh;\
-            background: #ddd;\
-        }\
-\
-            input[type=range]:focus {\
-                outline: none;\
-            }\
-\
-            input[type=range]::-webkit-slider-runnable-track {\
-                width: 100%;\
-                height: 0.5vh;\
-                cursor: pointer;\
-                background: #25619e;\
-            }\
-\
-            input[type=range]::-webkit-slider-thumb {\
-                border: 2.4px solid #e43a29;\
-                height: 6vh;\
-                width: 3vh;\
-                border-radius: 2vh;\
-                background: #ffffff;\
-                cursor: pointer;\
-                -webkit-appearance: none;\
-                margin-top: -3vh;\
-            }\
-\
-            input[type=range]:focus::-webkit-slider-runnable-track {\
-                background: #2664a2;\
-            }\
-\
-            input[type=range]::-moz-range-track {\
-                width: 100%;\
-                height: 0.5vh;\
-                cursor: pointer;\
-                background: #25619e;\
-            }\
-\
-            input[type=range]::-moz-range-thumb {\
-                box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
-                border: 2.4px solid #e43a29;\
-                height: 6vh;\
-                width: 3vh;\
-                border-radius: 2vh;\
-                background: #ffffff;\
-                cursor: pointer;\
-            }\
-\
-            input[type=range]::-ms-track {\
-                width: 100%;\
-                height: 2px;\
-                cursor: pointer;\
-                background: transparent;\
-                border-color: transparent;\
-                color: transparent;\
-            }\
-\
-            input[type=range]::-ms-fill-lower {\
-                background: #245e9a;\
-            }\
-\
-            input[type=range]::-ms-fill-upper {\
-                background: #25619e;\
-            }\
-\
-            input[type=range]::-ms-thumb {\
-                box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
-                border: 2.4px solid #e43a29;\
-                border-radius: 2vh;\
-                background: #ffffff;\
-                cursor: pointer;\
-                width: 30vh;\
-                height: 60vh;\
-            }\
-\
-            input[type=range]:focus::-ms-fill-lower {\
-                background: #25619e;\
-            }\
-\
-            input[type=range]:focus::-ms-fill-upper {\
-                background: #2664a2;\
-            }\
-\
-        output {\
-            margin: 0;\
-            font-size: 3vh;\
-            font-weight: 600;\
-        }\
-    </style>\
-    <div>\
-        <input type='button' value='リセット' onclick='if (window.confirm(\"カウントをリセットします\")) { resetCount();window.alert(\"リセットしました\"); }' />\
-        <p>このボタンを押すと、素因数カウントが０にリセットされます。</p>\
-    </div>\
-    <div>\
-        <h2>一度に落ちてくる数の多さ</h2>\
-            <input type='range' value='"+ Setting.number + "' min='-3' max='3' step='1' class='range'\
-                   oninput='Setting.number=this.value;var str=\"\"; document.getElementById(\"output1\").value = SeNumber[this.value];'>\
-        <output id='output1'>"+ SeNumber['' + Setting.number] + "</output>\
-        <p>動作が重い場合は、これで調節してください。</p>\
-    </div>\
-    <div>\
-        <h2>エフェクト</h2>\
-        <input type='range' value='"+ Setting.effect + "' min='-2' max='0' step='1' class='range'\
-               oninput='Setting.effect=this.value;var str = \"\"; switch(this.value){case \"-2\": str=\"なし\"; break; case \"-1\": str=\"少ない\";break; case \"0\": str=\"全て\"; break; }document.getElementById(\"output2\").value = str;'>\
-        <output id='output2'>"+ SeEffect['' + Setting.effect] + "</output>\
-        <p>分解したときに表示されるエフェクトの表示を設定します。<br />動作が重い場合は、これで調節してください。</p>\
-    </div>\
-    <div>\
-        <h2>Cookieの使用について</h2>\
-        <p>このゲームでは、素因数カウントや、この設定のデータを保存するためにCookieを使用しています。Cookieが有効になっていない場合、これらのデータは保存されません。</p>\
-    </div>\
-    <div>\
-        <p>ブラウザによって、挙動が変わることがあります。変な挙動になる場合は、別のブラウザをお試しください。</p>\
-    </div>\
-    <div style='background-color: #fff;'><input type='button' value='戻る' onclick='SaveCookie();BackSettings()' style='width:30vh' /></div>\
-            ";
+<style>\
+#container{\
+width:100%;\
+}\
+div div {\
+text-align: center;\
+max-width: 600px;\
+width: 94%;\
+margin: 3em auto;\
+padding: 0.5em;\
+background-color: #ddd;\
+}\
+input[type=button] {\
+border-radius: 0;\
+-webkit-box-sizing: content-box;\
+-webkit-appearance: button;\
+appearance: button;\
+border: none;\
+box-sizing: border-box;\
+cursor: pointer;\
+margin: 0 auto;\
+padding: 0.6em;\
+display: inline-block;\
+text-align: center;\
+text-decoration: none;\
+position: relative;\
+background-color: #4d95d1;\
+border-radius: 4px;\
+color: #fff;\
+box-shadow: 0 3px 0 #3070a5;\
+text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
+vertical-align: middle;\
+border-style: none;\
+font-size: 1.6em;\
+font-weight: 600;\
+width: 6em;\
+line-height: 1.4em;\
+}\
+input[type=\"button\"]::-webkit-search-decoration {\
+display: none;\
+}\
+input[type=button]:hover {\
+background-color: #57aaee;\
+box-shadow: 0 3px 0 #3070a5;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+h2 {\
+font-size: 2em;\
+}\
+p {\
+margin: 1em;\
+font-size: 20px;\
+}\
+input[type=range] {\
+margin: 0 auto;\
+-webkit-appearance: none;\
+width: 100%;\
+height: 5em;\
+background: #ddd;\
+}\
+input[type=range]:focus {\
+outline: none;\
+}\
+input[type=range]::-webkit-slider-runnable-track {\
+width: 100%;\
+height: 0.1em;\
+cursor: pointer;\
+background: #25619e;\
+}\
+input[type=range]::-webkit-slider-thumb {\
+border: 2.4px solid #e43a29;\
+height: 3em;\
+width: 6em;\
+border-radius: 1em;\
+background: #ffffff;\
+cursor: pointer;\
+-webkit-appearance: none;\
+margin-top: -1.5em;\
+}\
+input[type=range]:focus::-webkit-slider-runnable-track {\
+background: #2664a2;\
+}\
+input[type=range]::-moz-range-track {\
+width: 100%;\
+height: 0.1em;\
+cursor: pointer;\
+background: #25619e;\
+}\
+input[type=range]::-moz-range-thumb {\
+box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
+border: 2.4px solid #e43a29;\
+height: 3em;\
+width: 6em;\
+border-radius: 1em;\
+background: #ffffff;\
+cursor: pointer;\
+}\
+input[type=range]::-ms-track {\
+width: 100%;\
+height: 2px;\
+cursor: pointer;\
+background: transparent;\
+border-color: transparent;\
+color: transparent;\
+}\
+input[type=range]::-ms-fill-lower {\
+background: #245e9a;\
+}\
+input[type=range]::-ms-fill-upper {\
+background: #25619e;\
+}\
+input[type=range]::-ms-thumb {\
+box-shadow: 1px 1px 1px #630000, 0px 0px 1px #7d0000;\
+border: 2.4px solid #e43a29;\
+border-radius: 1em;\
+background: #ffffff;\
+cursor: pointer;\
+width: 6em;\
+height: 3em;\
+}\
+input[type=range]:focus::-ms-fill-lower {\
+background: #25619e;\
+}\
+input[type=range]:focus::-ms-fill-upper {\
+background: #2664a2;\
+}\
+input[type=checkbox] {\
+width: 2em;\
+height: 2em;\
+}\
+output {\
+margin: 0;\
+font-size: 1.4em;\
+font-weight: 600;\
+}\
+@media (max-device-height: 500px){\
+div div {\
+margin: 1em auto;\
+padding: 0.5em;\
+width: 90%;\
+max-width: initial;\
+}\
+input[type=button] {\
+padding: 0.3em;\
+font-size: 3em;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+h2 {\
+font-size: 3em;\
+}\
+p {\
+margin: 0.5em;\
+font-size: 1.6em;\
+}\
+input[type=range]::-webkit-slider-thumb {\
+height: 5em;\
+width: 8em;\
+margin-top: -2.5em;\
+}\
+input[type=range]::-moz-range-thumb {\
+height: 5em;\
+width: 8em;\
+}\
+input[type=range]::-ms-thumb {\
+width: 8em;\
+height: 5em;\
+}\
+input[type=checkbox] {\
+width: 4em;\
+height: 4em;\
+}\
+output {\
+margin: 0;\
+font-size: 3em;\
+}\
+}\
+@media (max-device-width: 600px){\
+div div {\
+margin: 1em auto;\
+padding: 0.5em;\
+width: 96%;\
+max-width: initial;\
+}\
+input[type=button] {\
+padding: 0.3em;\
+font-size: 4em;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+h2 {\
+font-size: 4em;\
+}\
+p {\
+margin: 0.5em;\
+font-size: 2em;\
+}\
+input[type=range]::-webkit-slider-thumb {\
+height: 6em;\
+width: 10em;\
+margin-top: -3em;\
+}\
+input[type=range]::-moz-range-thumb {\
+height: 6em;\
+width: 10em;\
+}\
+input[type=range]::-ms-thumb {\
+width: 10em;\
+height: 4em;\
+}\
+input[type=checkbox] {\
+width: 6em;\
+height: 6em;\
+}\
+output {\
+margin: 0;\
+font-size: 4em;\
+}\
+}\
+</style>\
+<div>\
+<input type='button' value='リセット' class='button' onclick='if (window.confirm(\"カウントをリセットします\")) { resetCount();window.alert(\"リセットしました\"); }'/>\
+<p>このボタンを押すと、素因数カウントが０にリセットされます。</p>\
+</div>\
+<div>\
+<h2>一度に落ちてくる数の多さ</h2>\
+<input type='range' value='"+ Setting.number + "' min='-3' max='3' step='1' class='range'\
+   oninput='Setting.number=this.value;var str = \"ふつう\"; document.getElementById(\"output1\").value = SeNumber[this.value];'>\
+<output id='output1'>"+ SeNumber[Setting.number] + "</output>\
+<p>動作が重い場合は、これで調節してください。</p>\
+</div>\
+<div>\
+<h2>エフェクト</h2>\
+<input type='range' value='"+ Setting.effect + "' min='-2' max='0' step='1' class='range'\
+   oninput='Setting.effect=this.value;var str = \"\"; document.getElementById(\"output2\").value = SeEffect[this.value]'>\
+<output id='output2'>"+ SeEffect[Setting.effect] + "</output>\
+<p>分解したときに表示されるエフェクトの表示を設定します。<br />動作が重い場合は、これで調節してください。</p>\
+</div>\
+<div>\
+<h2>効果音</h2>\
+<input type='checkbox' id='check3'"+ (Setting.sound == '1' ? ' checked' : '') + ">\
+<output id='output3'>" + (Setting.sound == '1' ? '有効' : '無効') + "</output>\
+<p>チェックを入れると音が鳴ります。<br />この設定は保存されません。</p>\
+</div>\
+<div style='background-color: #fff;'><input type='button' value='戻る' class='button' onclick='BackSettings()' /></div>\
+</div>\
+";
+
+    document.getElementById('check3').addEventListener('click', function () {
+        if (this.checked) {
+            document.getElementById('output3').innerHTML = '有効';
+            Setting.sound = '1';
+            playSound(seBuffer);
+        } else {
+            document.getElementById('output3').innerHTML = '無効';
+            Setting.sound = '0';
+        }
+    }, false);
 }
 function BackSettings() {
     var div = document.getElementById('container');
@@ -1236,35 +1487,84 @@ function BackSettings() {
 
     div.innerHTML = '\
     <style>\
-        input[type=button] {\
-            margin: 0 auto;\
-            width: 60vw;\
-            display: inline-block;\
-            text-align: center;\
-            text-decoration: none;\
-            position: relative;\
-            background-color: #4d95d1;\
-            border-radius: 4px;\
-            color: #fff;\
-            box-shadow: 0 3px 0 #3070a5;\
-            text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
-            vertical-align: middle;\
-            border-style: none;\
-            font-weight: 600;\
-        }\
-                \
-            input[type=button]:hover {\
-                background-color: #57aaee;\
-                box-shadow: 0 3px 0 #3070a5;\
-            }\
-                \
-            input[type=button]:active {\
-                top: 3px;\
-                box-shadow: none;\
-            }\
+#container{\
+width:100%;\
+}\
+div div {\
+text-align: center;\
+max-width: 600;\
+width: 94%;\
+margin: 3em auto;\
+padding: 0.5em;\
+background-color: #fff;\
+}\
+input[type=button] {\
+border-radius: 0;\
+-webkit-box-sizing: content-box;\
+-webkit-appearance: button;\
+appearance: button;\
+border: none;\
+box-sizing: border-box;\
+cursor: pointer;\
+margin: 0 auto;\
+padding: 0.6em;\
+display: inline-block;\
+text-align: center;\
+text-decoration: none;\
+position: relative;\
+background-color: #4d95d1;\
+border-radius: 4px;\
+color: #fff;\
+box-shadow: 0 3px 0 #3070a5;\
+text-shadow: 0 1px 1px rgba(0, 0, 0, .3);\
+vertical-align: middle;\
+border-style: none;\
+font-size: 4em;\
+font-weight: 600;\
+width: 6em;\
+line-height: 1.4em;\
+}\
+input[type="button"]::-webkit-search-decoration {\
+display: none;\
+}\
+input[type=button]:hover {\
+background-color: #57aaee;\
+box-shadow: 0 3px 0 #3070a5;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+@media (max-device-height: 500px){\
+input[type=button] {\
+font-size: 3em;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+}\
+@media (max-device-width: 600px){\
+input[type=button] {\
+font-size: 6em;\
+}\
+input[type=button]:active {\
+top: 3px;\
+box-shadow: none;\
+}\
+}\
     </style>\
-    <div style="text-align:center;"><input type="button" value="すたーと" style="margin-top:25vh;margin-bottom:10vh;width: 80vw;max-width:40vh; line-height: 10vh;font-size: 8vh;"onclick="var div = document.getElementById(\'container\');while(div.firstChild)div.removeChild(div.firstChild);init();main();" /></div>\
-    <div style="text-align:center;"><input type="button" value="設定" style="width: 60vw;max-width:40vh;line-height: 10vh;font-size: 7vh;"onclick="ClickSettings()" /></div>\
+    <div style="text-align:center;"><input id="startButton" type="button" value="すたーと" style="" onclick="var div = document.getElementById(\'container\');while(div.firstChild)div.removeChild(div.firstChild);init();main();" /></div>\
+    <div style="text-align:center;"><input type="button" value="設定" style=""onclick="ClickSettings()" /></div>\
             ';
 }
 BackSettings();
+
+window.onload = function () {
+    getAudioBuffer('jump12.wav', function (buffer1) {
+        seBuffer = buffer1;
+    });
+    getAudioBuffer('bomb.wav', function (buffer2) {
+        seBombBuffer = buffer2;
+    });
+};
