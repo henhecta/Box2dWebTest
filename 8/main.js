@@ -1167,7 +1167,7 @@ width:100%;\
 div div {\
 text-align: center;\
 max-width: 600px;\
-width: 90%;\
+width: 94%;\
 margin: 3em auto;\
 padding: 0.5em;\
 background-color: #ddd;\
@@ -1298,72 +1298,92 @@ margin: 0;\
 font-size: 1.4em;\
 font-weight: 600;\
 }\
-@media (max-width: 600px){\
+@media (max-device-height: 500px){\
 div div {\
 margin: 1em auto;\
 padding: 0.5em;\
+width: 90%;\
+max-width: initial;\
 }\
 input[type=button] {\
 padding: 0.3em;\
-font-size: 20px;\
+font-size: 3em;\
 }\
 input[type=button]:active {\
 top: 3px;\
 box-shadow: none;\
 }\
 h2 {\
-font-size: 18px;\
+font-size: 3em;\
 }\
 p {\
 margin: 0.5em;\
-font-size: 12px;\
+font-size: 1.6em;\
 }\
 input[type=range]::-webkit-slider-thumb {\
-height: 2em;\
-width: 4em;\
-margin-top: -1em;\
+height: 5em;\
+width: 8em;\
+margin-top: -2.5em;\
 }\
 input[type=range]::-moz-range-thumb {\
-height: 2em;\
-width: 4em;\
+height: 5em;\
+width: 8em;\
 }\
 input[type=range]::-ms-thumb {\
+width: 8em;\
+height: 5em;\
+}\
+input[type=checkbox] {\
 width: 4em;\
-height: 2em;\
+height: 4em;\
+}\
+output {\
+margin: 0;\
+font-size: 3em;\
 }\
 }\
-@media (max-height: 500px){\
+@media (max-device-width: 600px){\
 div div {\
 margin: 1em auto;\
 padding: 0.5em;\
+width: 96%;\
+max-width: initial;\
 }\
 input[type=button] {\
 padding: 0.3em;\
-font-size: 16px;\
+font-size: 4em;\
 }\
 input[type=button]:active {\
 top: 3px;\
 box-shadow: none;\
 }\
 h2 {\
-font-size: 16px;\
+font-size: 4em;\
 }\
 p {\
-margin: 1em;\
-font-size: 12px;\
+margin: 0.5em;\
+font-size: 2em;\
 }\
 input[type=range]::-webkit-slider-thumb {\
-height: 2em;\
-width: 4em;\
-margin-top: -1em;\
+height: 6em;\
+width: 10em;\
+margin-top: -3em;\
 }\
 input[type=range]::-moz-range-thumb {\
-height: 2em;\
-width: 4em;\
+height: 6em;\
+width: 10em;\
 }\
 input[type=range]::-ms-thumb {\
-width: 4em;\
-height: 2em;\
+width: 10em;\
+height: 4em;\
+}\
+input[type=checkbox] {\
+width: 6em;\
+height: 6em;\
+}\
+output {\
+margin: 0;\
+font-size: 4em;\
 }\
 }\
 </style>\
@@ -1418,8 +1438,8 @@ width:100%;\
 }\
 div div {\
 text-align: center;\
-max-width: 600px;\
-width: 90%;\
+max-width: 600;\
+width: 94%;\
 margin: 3em auto;\
 padding: 0.5em;\
 background-color: #fff;\
@@ -1461,28 +1481,18 @@ input[type=button]:active {\
 top: 3px;\
 box-shadow: none;\
 }\
-@media (max-width: 600px){\
-div div {\
-margin: 1em auto;\
-padding: 0.5em;\
-}\
+@media (max-device-height: 500px){\
 input[type=button] {\
-padding: 0.3em;\
-font-size: 2em;\
+font-size: 3em;\
 }\
 input[type=button]:active {\
 top: 3px;\
 box-shadow: none;\
 }\
 }\
-@media (max-height: 500px){\
-div div {\
-margin: 1em auto;\
-padding: 0.5em;\
-}\
+@media (max-device-width: 600px){\
 input[type=button] {\
-padding: 0.3em;\
-font-size: 2em;\
+font-size: 6em;\
 }\
 input[type=button]:active {\
 top: 3px;\
