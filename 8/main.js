@@ -4,11 +4,11 @@ var WorldSizeX = 10, WorldSizeY = 10;
 
 var isTouch = false;
 var MouseX = -1, MouseY = -1;
-var TouchStartTime=0;
-var PrevTapTime=0;
-var TapTime=0;
-var TapPos={x:-1,y:-1};
-var TapStartPos={x:-1,y:-1};
+var TouchStartTime = 0;
+var PrevTapTime = 0;
+var TapTime = 0;
+var TapPos = { x: -1, y: -1 };
+var TapStartPos = { x: -1, y: -1 };
 
 const DMax = 0.45;
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -88,8 +88,44 @@ var numbers = [
     [48, 30],
     [49, 30],
     [50, 30],
+    [51, 5],
+    [52, 5],
+    [55, 5],
+    [56, 5],
+    [58, 5],
+    [60, 5],
+    [62, 5],
+    [63, 5],
+    [64, 5],
+    [65, 5],
+    [66, 5],
+    [68, 5],
+    [69, 5],
+    [70, 5],
+    [72, 5],
+    [74, 5],
+    [75, 5],
+    [76, 5],
+    [77, 5],
+    [78, 5],
+    [80, 5],
+    [81, 5],
+    [82, 5],
+    [84, 5],
+    [85, 5],
+    [86, 5],
+    [88, 5],
+    [90, 5],
+    [92, 5],
+    [93, 5],
+    [95, 5],
+    [96, 5],
+    [98, 5],
+    [99, 5],
+    [100, 5],
     [111, 3],
     [221, 3],
+    [289, 3],
     [323, 3],
     [361, 3],
     [527, 3],
@@ -109,10 +145,12 @@ var numbers = [
     [899, 3],
     [943, 3],
     [961, 3],
+    [1000, 3],
     [1073, 3],
     [1147, 3],
     [1189, 3],
     [1271, 3],
+    [1331, 3],
     [1369, 3],
     [1517, 3],
     [1591, 3],
@@ -124,15 +162,20 @@ var numbers = [
     [7429, 3],
     [9367, 3],
     [9503, 3],
+    [14641, 3],
+    [15625, 3],
     [28561, 3],
     [46139, 3],
+    [59049, 3],
     [65231, 3],
+    [65536, 3],
     [79507, 3],
     [111111, 4],
     [130321, 2],
     [161051, 2],
     [371293, 2],
     [707281, 2],
+    [1000000, 2],
     [282475249, 3],
     [6541380665835015, 3]
     //max[9007199254740991, 3]
@@ -269,8 +312,8 @@ function init() {
         e.preventDefault();
         MouseX = e.changedTouches[0].pageX - marginX;
         MouseY = e.changedTouches[0].pageY - marginY;
-        TouchStartTime=new Date();
-        TapStartPos={x:MouseX,y:MouseY};
+        TouchStartTime = new Date();
+        TapStartPos = { x: MouseX, y: MouseY };
         return false;
     }, { passive: false });
 
@@ -278,8 +321,8 @@ function init() {
         e.preventDefault();
         MouseX = e.clientX - marginX;
         MouseY = e.clientY - marginY;
-        TouchStartTime=new Date();
-        TapStartPos={x:MouseX,y:MouseY};
+        TouchStartTime = new Date();
+        TapStartPos = { x: MouseX, y: MouseY };
         return false;
     }, { passive: false });
 
@@ -303,11 +346,11 @@ function init() {
 
     document.getElementById('container').addEventListener('touchend', function (e) {
         e.preventDefault();
-        var now=new Date();
-        if(now.getTime()-TouchStartTime.getTime()<200&&-10<=(TapStartPos.x-MouseX)&&(TapStartPos.x-MouseX)<=10 && -10<=(TapStartPos.y-MouseY)&&(TapStartPos.y-MouseY)<=10){
-            PrevTapTime=TapTime;
-            TapTime=now;
-            TapPos={x:MouseX,y:MouseY};
+        var now = new Date();
+        if (now.getTime() - TouchStartTime.getTime() < 200 && -10 <= (TapStartPos.x - MouseX) && (TapStartPos.x - MouseX) <= 10 && -10 <= (TapStartPos.y - MouseY) && (TapStartPos.y - MouseY) <= 10) {
+            PrevTapTime = TapTime;
+            TapTime = now;
+            TapPos = { x: MouseX, y: MouseY };
         }
         MouseX = -1;
         MouseY = -1;
@@ -315,11 +358,11 @@ function init() {
 
     document.getElementById('container').addEventListener('mouseup', function (e) {
         e.preventDefault();
-        var now=new Date();
-        if(now.getTime()-TouchStartTime.getTime()<200&&-10<=(TapStartPos.x-MouseX)&&(TapStartPos.x-MouseX)<=10 && -10<=(TapStartPos.y-MouseY)&&(TapStartPos.y-MouseY)<=10){
-            PrevTapTime=TapTime;
-            TapTime=now;
-            TapPos={x:MouseX,y:MouseY};
+        var now = new Date();
+        if (now.getTime() - TouchStartTime.getTime() < 200 && -10 <= (TapStartPos.x - MouseX) && (TapStartPos.x - MouseX) <= 10 && -10 <= (TapStartPos.y - MouseY) && (TapStartPos.y - MouseY) <= 10) {
+            PrevTapTime = TapTime;
+            TapTime = now;
+            TapPos = { x: MouseX, y: MouseY };
         }
         MouseX = -1;
         MouseY = -1;
@@ -550,6 +593,17 @@ function main() {
 
     function GetRandNumber() {
         var sum = 0;
+
+        if (Math.random() * 50 < 1.0) {
+            var m = 1;
+            var n = Math.floor(Math.random() * 3) + 2;
+            for (var i = 0; i < n; i++) {
+                var l = Number(Object.keys(facts)[Math.floor(Math.random() * Object.keys(facts).length)]);
+                if (l > 1) m *= l;
+            }
+            return m;
+        }
+
         for (var i = 0; i < numbers.length; i++)
             sum += numbers[i][1];
 
@@ -890,10 +944,10 @@ function main() {
         Touch.gcd = 0;
     }
 
-    function TapProg(){
-        if(TapTime!=0&&PrevTapTime!=0){
-            if(TapTime.getTime()-PrevTapTime.getTime()<400){
-                var Bpos = {x:TapPos.x/scale,y:TapPos.y/scale};
+    function TapProg() {
+        if (TapTime != 0 && PrevTapTime != 0) {
+            if (TapTime.getTime() - PrevTapTime.getTime() < 400) {
+                var Bpos = { x: TapPos.x / scale, y: TapPos.y / scale };
                 for (var j = 0; j < BodyNum; j++) {
                     var pos = Bodies[j].b2body.GetPosition();
                     var dis = Math.sqrt(Distance2(Bpos.x, Bpos.y, pos.x, pos.y));
@@ -901,12 +955,12 @@ function main() {
                     var impulse = new b2Vec2;
                     impulse.x = pos.x - Bpos.x;
                     impulse.y = pos.y - Bpos.y;
-                    impulse.x = impulse.x / Math.pow(dis+1, 4.5) * 300.0;
-                    impulse.y = impulse.y / Math.pow(dis+1, 4.5) * 300.0;
+                    impulse.x = impulse.x / Math.pow(dis + 1, 4.5) * 300.0;
+                    impulse.y = impulse.y / Math.pow(dis + 1, 4.5) * 300.0;
                     Bodies[j].b2body.ApplyImpulse(impulse, pos);
                 }
             }
-            PrevTapTime=0;
+            PrevTapTime = 0;
         }
     }
 
