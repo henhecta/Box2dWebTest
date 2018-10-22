@@ -423,7 +423,7 @@ function init() {
         case '-3': BodyNum = 4; break;
         default: BodyNum = Math.floor(WorldMul * 0.85);
     }
-
+    numbers[0][1]=Math.floor(200/Math.sqrt(BodyNum));
     mainCont = document.createElementNS(ns, 'g')
     svg.appendChild(mainCont);
 
