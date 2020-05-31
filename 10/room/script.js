@@ -186,8 +186,8 @@ var ns = 'http://www.w3.org/2000/svg';
       for (let key in pannerlocs) {
         if (String(key) == 'me') continue;
         panners[key].setPosition(
-          (pannerlocs[key][0] - myloc[0]) * Math.cos(myloc[2]) - (pannerlocs[key][1] - myloc[1]) * Math.sin(myloc[2]),
-          (pannerlocs[key][0] - myloc[0]) * Math.sin(myloc[2]) + (pannerlocs[key][1] - myloc[1]) * Math.cos(myloc[2]),
+          (pannerlocs[key][0] - myloc[0]) * Math.cos(-myloc[2]) - (pannerlocs[key][1] - myloc[1]) * Math.sin(-myloc[2]),
+          (pannerlocs[key][0] - myloc[0]) * Math.sin(-myloc[2]) + (pannerlocs[key][1] - myloc[1]) * Math.cos(-myloc[2]),
           0);
 
         panners[key].setOrientation(Math.cos(pannerlocs[key][2]-myloc[2]),Math.sin(pannerlocs[key][2]-myloc[2]),0);
