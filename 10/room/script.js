@@ -206,7 +206,7 @@ var ns = 'http://www.w3.org/2000/svg';
       myloc[2] = Math.atan2(y, x);
       updateme();
       let newtime = new Date();
-      if (newtime - prevsendtime > 300) {
+      if (newtime.getTime() - prevsendtime.getTime() > 300) {
         prevsendtime = newtime;
         sendme();
       }
