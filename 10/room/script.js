@@ -191,6 +191,7 @@ var ns = 'http://www.w3.org/2000/svg';
     }
     function sendme() {
       room.send('pos,'+myloc[0]+','+myloc[1]+','+(myloc[2] * 180 / Math.PI));
+      console.log('pos,' + myloc[0] + ',' + myloc[1] + ',' + (myloc[2] * 180 / Math.PI));
     }
     function onMousemove(e) {
       let rect = e.target.getBoundingClientRect();
@@ -203,9 +204,9 @@ var ns = 'http://www.w3.org/2000/svg';
       updateme();
       let newtime = new Date();
       if (newtime - prevsendtime > 100) {
-        sendme();
         prevsendtime = newtime;
       }
+      sendme();
     }
     function onClick(e) {
       let rect = e.target.getBoundingClientRect();
