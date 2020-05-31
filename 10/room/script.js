@@ -125,15 +125,18 @@ var ns = 'http://www.w3.org/2000/svg';
       let mark = document.getElementById(src);
       datas = data.split(',');
       if (datas.length == 4) {
-        mark.setAttributeNS(null, 'transform', 'translate(' + datas[1] + ',' + datas[2] + ')rotate(' + datas[3] + ')');
-        let loc = [Number(datas[1]), Number(datas[2]), Number(datas[3]) / 180.0 * Math.PI];
-        console.log(loc);
-        pannerlocs[src] = loc;
-        panners[src].setPosition(
-          (loc[0] - myloc[0]) * Math.cos(myloc[2]) - (loc[1] - myloc[1]) * Math.sin(myloc[2]),
-          (loc[0] - myloc[0]) * Math.sin(myloc[2]) + (loc[1] - myloc[1]) * Math.cos(myloc[2]),
-          0);
-        panners[src].setOrientation(Math.cos(loc[2] - myloc[2]), Math.sin(loc[2] - myloc[2]), 0);
+        if (mark == null) {
+          //pannerlocs[src] = loc;
+        } else {
+          mark.setAttributeNS(null, 'transform', 'translate(' + datas[1] + ',' + datas[2] + ')rotate(' + datas[3] + ')');
+          let loc = [Number(datas[1]), Number(datas[2]), Number(datas[3]) / 180.0 * Math.PI];
+          console.log(loc);
+          panners[src].setPosition(
+            (loc[0] - myloc[0]) * Math.cos(myloc[2]) - (loc[1] - myloc[1]) * Math.sin(myloc[2]),
+            (loc[0] - myloc[0]) * Math.sin(myloc[2]) + (loc[1] - myloc[1]) * Math.cos(myloc[2]),
+            0);
+          panners[src].setOrientation(Math.cos(loc[2] - myloc[2]), Math.sin(loc[2] - myloc[2]), 0);
+        }
       }// else {
         // Show a message sent to the room and who sent
         messages.textContent += `${src}: ${data}\n`;
