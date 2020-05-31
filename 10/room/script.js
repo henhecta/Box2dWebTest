@@ -218,10 +218,15 @@ var ns = 'http://www.w3.org/2000/svg';
       myloc[0] = mousex;
       myloc[1] = mousey;
       updateme();
-      sendme();
+      let newtime = new Date();
+      if (newtime.getTime() - prevsendtime.getTime() > 300) {
+        prevsendtime = newtime;
+        sendme();
+      }
     }
     roomView.addEventListener('click', onClick);
     roomView.addEventListener('mousemove', onMousemove);
+    prevsendtime = new Date();
     sendme();
   });
 
