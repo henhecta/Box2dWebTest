@@ -154,6 +154,11 @@ var ns = 'http://www.w3.org/2000/svg';
       remoteVideo.srcObject = null;
       remoteVideo.remove();
 
+      let mark = document.getElementById(peerId);
+      mark.remove();
+      delete panners[peerId];
+      delete pannerlocs[peerId];
+      
       messages.textContent += `=== ${peerId} left ===\n`;
     });
 
