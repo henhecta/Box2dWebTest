@@ -119,6 +119,7 @@ var ns = 'http://www.w3.org/2000/svg';
       mark.setAttributeNS(null, 'transform', 'translate(100,100)rotate(0)');
       mark.setAttributeNS(null, 'id', stream.peerId);
       roomView.appendChild(mark);
+      pannerlocs[stream.peerId] = [100, 100, 0];
     });
 
     room.on('data', ({ data, src }) => {
