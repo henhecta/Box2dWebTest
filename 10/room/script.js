@@ -139,10 +139,10 @@ var ns = 'http://www.w3.org/2000/svg';
           panners[src].setOrientation(Math.cos(loc[2] - myloc[2]), Math.sin(loc[2] - myloc[2]), 0);
           pannerlocs[src] = loc;
         }
-      }// else {
+      } else {
         // Show a message sent to the room and who sent
         messages.textContent += `${src}: ${data}\n`;
-      //}
+      }
     });
 
     // for closing room members
